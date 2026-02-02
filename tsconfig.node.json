@@ -1,0 +1,41 @@
+{
+  // 1. 继承“懒人包”配置
+  // 作用：引入 @electron-toolkit 提供的官方最佳实践。
+  // 潜台词：基础的编译规则它都帮我配好了，我不需要从零写 target 或者是 module 这些底层参数。
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+
+  // 2. 【核心】管辖范围 (这里面的代码 = 后端代码)
+  // 作用：告诉 TS，只有下面这些文件夹里的代码，是运行在 Node.js 环境的。
+  // 业务逻辑：如果你在写主进程(Main)代码，或者想用 fs/path 读写文件，确保你的文件在这个列表里。
+  "include": [
+    "electron.vite.config.*", // 项目的打包配置文件
+    "src/main/**/*",          // 主进程代码（比如：窗口创建、系统API调用、数据库连接）
+    "src/preload/**/*",       // 预加载脚本（主进程和渲染进程的桥梁）
+    "src/shared/**/*"         // 共享文件夹（放两边都要用的类型定义或纯逻辑工具）
+  ],
+
+  "compilerOptions": {
+    // 拼图模式：告诉编辑器“我只是整个项目的一部分”，还有另一个管前端的配置文件
+    "composite": true,
+    
+    // 设定根目录，通常就是当前文件夹
+    "baseUrl": ".",
+
+    "experimentalDecorators": true,    // 开启装饰器支持
+    "emitDecoratorMetadata": true,     // 开启元数据支持（通常配合装饰器使用）
+
+    // 注入类型定义：让 TS 认识 electron-vite 特有的环境变量
+    // 如果没有这行，你在代码里写 import.meta.env 可能就会爆红线
+    "types": ["electron-vite/node"],
+    
+    // 3. 路径别名 (快捷方式)
+    // 作用：让你引入文件时更优雅。
+    // 业务逻辑：当你输入 @shared 时，编辑器知道你去 src/shared 找文件。
+    // 注意：这里只是为了让编辑器不报错，真正的路径映射通常还需要在 vite 配置里也写一份。
+    "paths": {
+      "@shared/*": [
+        "src/shared/*"
+      ]
+    }
+  }
+}

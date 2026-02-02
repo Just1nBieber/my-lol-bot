@@ -1,0 +1,37 @@
+{
+  // 1. 继承“前端懒人包”
+  // 作用：引入针对浏览器环境 (Browser/DOM) 的最佳配置。
+  // 潜台词：这个配置会自动让你能用 window, document, console.log 这些浏览器原生的东西。
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+
+  // 2. 【核心】管辖范围 (这里面的代码 = 纯前端代码)
+  // 业务逻辑：这里是你的“画图”区域。注意：这里的代码**不能**直接调用 fs/path 去读写文件，必须通过桥梁(preload)。
+  "include": [
+    "src/renderer/src/env.d.ts",    // 环境变量定义 (比如 import.meta.env.VITE_API_URL)
+    "src/renderer/src/**/*",        // 所有的前端源码 (你的 Vue/React 组件都在这)
+    "src/renderer/src/**/*.vue",    // 【关键】显式包含 Vue 组件 (TS 默认不认识 .vue 文件，得告诉它)
+    
+    // 【重要】桥梁的“说明书”
+    // 作用：让你的前端代码知道 window.electron 或者 window.api 里到底有哪些方法可用。
+    // 如果没有这一行，你在组件里调用 window.api.sendMessage() 时，编辑器会报错说找不到。
+    "src/preload/*.d.ts",           
+    
+    "src/shared/**/*"               // 共享代码 (类型定义、工具函数)
+  ],
+
+  "compilerOptions": {
+    // 拼图模式：跟 tsconfig.node.json 配合，组成完整的项目
+    "composite": true,
+    
+    "baseUrl": ".",
+    
+    // 3. 路径别名 (前端专用快捷方式)
+    // 业务逻辑：方便你在组件里引用其他组件或资源。
+    // 例子：import Button from '@renderer/components/Button'
+    "paths": {
+      "@renderer/*": [
+        "src/renderer/src/*"
+      ]
+    }
+  }
+}
