@@ -3,7 +3,8 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { shardManager } from '@shared/yuekui-shard/manager'
-import './shards/Hello-world-shards/index'
+import './shards/Hello-world-shard/index'
+import './shards/Lcu-connect/index'
 
 function createWindow(): void {
   // Create the browser window.
@@ -74,6 +75,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+  app.on('will-quit', async () => {
+    console.log('正在关闭所有后台服务...')
+    await shardManager.disposeAll()
+  })
 })
 
 // In this file you can include the rest of your app's specific main process

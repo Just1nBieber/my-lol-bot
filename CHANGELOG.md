@@ -12,3 +12,18 @@
 
 - 完成 `HelloWorldShard` 模块，验证自动加载机制。
 - 规范化 `BaiYueKuiShard` 接口，支持异步初始化。
+
+# 更新日志
+
+## [v0.0.2] -2026-02-03
+
+### ✨ 新增功能
+
+- 实现 `Lcu-connect-shard`模块，连接本地与客户端
+- 落地 `LCU进程守护功能`，通过`connectionLoop`在软件未关闭的情况下，实时监听客户端状态
+- 全局状态 `Lcu-state(基于mobx)`的初步架构，用于自动管理后端响应式数据，存储数据。
+
+### ♻️ 代码优化
+
+- **生命周期完善**: 在主进程 (`main.ts`) 增加 `will-quit` 钩子，确保应用退出时优雅销毁所有 Shard 资源。
+- **类型安全**: 完善 `LeagueWebSocket` 的 TypeScript 类型定义，修复空值引用风险。

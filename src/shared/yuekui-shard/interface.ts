@@ -4,6 +4,6 @@ export interface BaiYueKuiShard {
   onDispose(): shardFn
 }
 
-export type shardFn = void | Promise<void>
+export type shardFn = void
 
 export type YueKuiShardCtor = new () => BaiYueKuiShard
