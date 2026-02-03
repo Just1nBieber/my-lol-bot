@@ -1,11 +1,9 @@
 import type { Credentials, LeagueWebSocket } from 'league-connect'
-
+import type { GameflowPhase } from '../Lcu-state/state'
 import { BaiYueKuiShard, shardFn } from '@shared/yuekui-shard/interface'
 import { authenticate, createWebSocketConnection } from 'league-connect'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
-import { resolve } from 'path'
-import { rejects } from 'assert'
 
 const SHARD_ID = 'lcu-connect'
 @Shard(SHARD_ID)
@@ -46,18 +44,11 @@ export class LcuConnectShard implements BaiYueKuiShard {
           authenticationOptions: { awaitConnection: true, pollInterval: 5000 }
         })
 
-        this._ws!.subscribe('/lol-gameflow/v1/gameflow-phase', (data: string) => {
-          lcuState.setPhase(data)
+        this._ws!.subscribe('/lol-gameflow/v1/gameflow-phase', (data) => {
+          lcuState.setPhase(data as GameflowPhase)
         })
 
         console.log(`[${this.id}] WebSocket 连接成功，开始监听状态`)
-
-        // 监听事件
-        this._ws!.subscribe('/lol-gameflow/v1/gameflow-phase', (data) => {
-          lcuState.setPhase(data)
-        })
-
-        console.log(this.id, '模块监听已就绪')
 
         // 5. 设置Promise管理this._isDispose
         await new Promise<void>((resolve) => {
@@ -80,7 +71,7 @@ export class LcuConnectShard implements BaiYueKuiShard {
     }
   }
 
-  async onDispose(): Promise<void> {
+  onDispose(): void {
     this._isDispose = true // 暂停循环
     if (this._ws) {
       this._ws.close()

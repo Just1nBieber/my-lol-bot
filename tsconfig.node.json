@@ -27,6 +27,8 @@
     // 注入类型定义：让 TS 认识 electron-vite 特有的环境变量
     // 如果没有这行，你在代码里写 import.meta.env 可能就会爆红线
     "types": ["electron-vite/node"],
+
+    "lib": ["ESNext", "DOM"],
     
     // 3. 路径别名 (快捷方式)
     // 作用：让你引入文件时更优雅。

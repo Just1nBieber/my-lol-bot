@@ -27,3 +27,11 @@
 
 - **生命周期完善**: 在主进程 (`main.ts`) 增加 `will-quit` 钩子，确保应用退出时优雅销毁所有 Shard 资源。
 - **类型安全**: 完善 `LeagueWebSocket` 的 TypeScript 类型定义，修复空值引用风险。
+
+#  更新日志
+## [v0.0.3] - 2026-02-03
+
+### ✨ 新增功能 (Features)
+- **架构搭建**: 初始化 `AutoPickShard` 模块，完成依赖注入与生命周期挂载。
+- **状态监听**: 集成 MobX `reaction` 机制，实现对 LCU 游戏流程 (`GameflowPhase`) 的响应式监听。
+- **资源管理**: 通过`this._cleanupFns`与 `onDispose`结合完善清理机制，自动销毁 reaction 监听器，杜绝内存泄漏。
