@@ -35,3 +35,13 @@
 - **架构搭建**: 初始化 `AutoPickShard` 模块，完成依赖注入与生命周期挂载。
 - **状态监听**: 集成 MobX `reaction` 机制，实现对 LCU 游戏流程 (`GameflowPhase`) 的响应式监听。
 - **资源管理**: 通过`this._cleanupFns`与 `onDispose`结合完善清理机制，自动销毁 reaction 监听器，杜绝内存泄漏。
+
+
+#  更新日志
+## [v0.0.4] - 2026-02-07
+
+### ✨ 新增功能 (Features)
+- **资源模块**: 初始化 `ChampAssetShard` 模块，完成英雄列表与头像数据的获取与入库，为前端 UI 提供数据支撑。
+- **通信重构**: 弃用 HTTP 轮询，全面迁移至 WebSocket 长连接模式，实现对游戏阶段 (GamePhase) 的毫秒级实时响应。
+- **状态管理**: 重构 `LcuState` 为单一数据源 (Single Source of Truth)，实现 Socket 实例、凭据 (Credential) 及英雄列表 (ChampionList) 的全局共享。
+- **类型定义**: 补全 LCU 核心接口的 TypeScript 类型定义，提升开发体验与代码健壮性。
