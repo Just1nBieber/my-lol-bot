@@ -1,10 +1,11 @@
 import type { BaiYueKuiShard, shardFn } from '@shared/yuekui-shard/interface'
 import type { IReactionDisposer } from 'mobx'
+import type { LcuAction, LcuSessionData } from '../Lcu-state/type'
 
 import { reaction } from 'mobx'
 import { lcuState } from '../Lcu-state/state'
 import { Shard } from '@shared/yuekui-shard/decorators'
-import { createHttp1Request } from 'league-connect'
+import { LeagueWebSocket, createHttp1Request } from 'league-connect'
 
 const SHARD_ID = 'auto-pick'
 
@@ -17,12 +18,10 @@ export class AutoPickShard implements BaiYueKuiShard {
   onInit(): void {
     console.log('启动自动选择英雄模块')
     const disposeFunction = reaction(
-      () => lcuState.phase,
-      (phase) => {
-        if (phase === 'ChampSelect') {
-          console.log('进入选人阶段...正在调用相应函数')
-          this.tryAutoPick()
-        }
+      () => lcuState.socket,
+      (socket) => {
+        console.log('🔌 WebSocket 就绪，开始监听选人会话')
+        if (socket) this.subscribeToSession(socket)
       }
     )
     this._cleanupFns.push(disposeFunction)
@@ -32,29 +31,68 @@ export class AutoPickShard implements BaiYueKuiShard {
     this._cleanupFns.forEach((d) => d())
   }
 
-  async tryAutoPick(): Promise<void> {
-    // 1. 提取快照（解决报错的核心！）
-    const creds = lcuState.credential
+  subscribeToSession(socket: LeagueWebSocket): void {
+    const ws = socket
 
-    // 2. 判空
-    if (!creds) {
-      console.warn('无凭据')
+    if (!ws) {
+      console.warn(`${this.id}没有建立起websocket`)
       return
     }
 
-    // 3. 此时 TS 知道 creds 绝对安全
-    if (lcuState.phase === 'ChampSelect') {
-      const res = await createHttp1Request(
-        {
-          method: 'GET',
-          url: '/lol-champ-select/v1/session'
-        },
-        creds // 👈 传入快照
+    ws!.subscribe('/lol-champ-select/v1/session', (data) => {
+      if (!data || !data.actions) return
+      const { localPlayerCellId, actions } = data as LcuSessionData
+      const flatArray = actions.flat()
+
+      const allMyActions = flatArray.filter((item) => item.actorCellId === localPlayerCellId)
+
+      console.log(
+        '我的所有动作状态',
+        allMyActions.map((a) => ({
+          type: a.type,
+          isInProgress: a.isInProgress,
+          completed: a.completed
+        }))
       )
 
-      // 4. 这里的 await 报错现在应该消失了！
-      const data = res.json()
-      console.log('📦 数据:', data)
+      const IhaveCurrentActionOrNot = flatArray.find(
+        (item) => item.actorCellId === localPlayerCellId && item.isInProgress === true
+      )
+
+      if (!IhaveCurrentActionOrNot) {
+        console.log('没有当前动作的相关顺序')
+        return
+      } else if (IhaveCurrentActionOrNot.completed) {
+        console.log(`${IhaveCurrentActionOrNot.type}已是完成状态，正在退出逻辑`)
+        return
+      }
+
+      switch (IhaveCurrentActionOrNot.type) {
+        case 'ban':
+          console.log('正在进行ban阶段')
+          break
+        case 'pick':
+          console.log('正在进行pick阶段')
+          this.toPickChamp(IhaveCurrentActionOrNot.id)
+          break
+        default:
+          console.log('未知任务类型:', IhaveCurrentActionOrNot.type)
+      }
+    })
+  }
+
+  toPickChamp(actionId: number): void {
+    const credential = lcuState.credential
+    if (credential) {
+      const res = createHttp1Request(
+        {
+          method: 'PATCH',
+          url: `/lol-champ-select/v1/session/actions/${actionId}`,
+          body: this.preferTOpick
+        },
+        credential
+      )
     }
+    return
   }
 }

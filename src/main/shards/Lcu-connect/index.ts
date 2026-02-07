@@ -29,20 +29,25 @@ export class LcuConnectShard implements BaiYueKuiShard {
         const credential = await authenticate({ awaitConnection: true, pollInterval: 5000 })
 
         // 2. 写入状态
-        lcuState.credential = credential
-        console.log(
-          'port',
-          lcuState.credential.port,
-          'password',
-          lcuState.credential.password,
-          'pid',
-          lcuState.credential.pid
-        )
+        lcuState.setCredentials(credential)
+
+        if (lcuState.credential) {
+          console.log(
+            'port',
+            lcuState.credential.port,
+            'password',
+            lcuState.credential.password,
+            'pid',
+            lcuState.credential.pid
+          )
+        }
 
         // 4.建立websocket连接，监听游戏流，保持与客户端的连接
         this._ws = await createWebSocketConnection({
           authenticationOptions: { awaitConnection: true, pollInterval: 5000 }
         })
+
+        lcuState.setWebSocket(this._ws)
 
         this._ws!.subscribe('/lol-gameflow/v1/gameflow-phase', (data) => {
           lcuState.setPhase(data as GameflowPhase)
@@ -75,6 +80,7 @@ export class LcuConnectShard implements BaiYueKuiShard {
     this._isDispose = true // 暂停循环
     if (this._ws) {
       this._ws.close()
+      lcuState.setWebSocket(null)
       this._ws = null
     }
   }

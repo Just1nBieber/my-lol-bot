@@ -6,6 +6,7 @@ import { shardManager } from '@shared/yuekui-shard/manager'
 import './shards/Hello-world-shard/index'
 import './shards/Lcu-connect/index'
 import './shards/Auto-pick-shards/index'
+import './shards/Champ-asset-shards/index'
 
 function createWindow(): void {
   // Create the browser window.
