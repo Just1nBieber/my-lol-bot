@@ -7,6 +7,9 @@ import './shards/Hello-world-shard/index'
 import './shards/Lcu-connect/index'
 import './shards/Auto-pick-shards/index'
 import './shards/Champ-asset-shards/index'
+import './shards/Renderer-sync/index'
+
+app.commandLine.appendSwitch('ignore-certificate-errors')
 
 function createWindow(): void {
   // Create the browser window.

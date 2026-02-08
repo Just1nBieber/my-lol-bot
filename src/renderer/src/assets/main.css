@@ -1,4 +1,6 @@
+@import "tailwindcss";
 @import './base.css';
+
 
 body {
   display: flex;

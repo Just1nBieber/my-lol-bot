@@ -1,12 +1,13 @@
-import type { BaiYueKuiShard, shardFn } from '@shared/yuekui-shard/interface'
+import type { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import type { Credentials } from 'league-connect'
 import type { IReactionDisposer } from 'mobx'
+import type { ChampionSimple } from '../Lcu-state/type'
 
 import { reaction } from 'mobx'
 import { lcuState } from '../Lcu-state/state'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { createHttp1Request } from 'league-connect'
-import { ChampionSimple } from '../Lcu-state/type'
+import { protocol, net } from 'electron'
 
 const SHARD_ID = 'champ-asset'
 
@@ -18,6 +19,8 @@ export class ChampAssetShard implements BaiYueKuiShard {
 
   async onInit(): Promise<void> {
     console.log('启动Champion资源模块')
+    // 🔥在模块初始化时，注册自定义图片协议
+    this.registerImgProtocol()
     const disposeFunction = reaction(
       () => lcuState.credential,
       (creds) => {
@@ -31,12 +34,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
   }
 
   onDispose(): void {
+    console.log(`[${SHARD_ID}] LCU 连接断开，重置加载状态`)
     lcuState.setChampionListLoad(false)
     this._cleanupFns.forEach((d) => d())
   }
 
   async fetchChampionAsset(cred: Credentials): Promise<void> {
-     const isLoaded = lcuState.isLoaded
+    const isLoaded = lcuState.isLoaded
     if (!!isLoaded === false) {
       const credential = cred
       const C_A_RES = await createHttp1Request(
@@ -52,10 +56,59 @@ export class ChampAssetShard implements BaiYueKuiShard {
         return item.id != -1
       })
 
-      console.log(can_pick_champ)
+      // 🕵️‍♂️【侦探模式】打印第一条数据看看路径到底长啥样
+      if (can_pick_champ.length > 0) {
+          const firstChamp = can_pick_champ[0] // 通常是 Annie (ID: 1)
+          console.log('📦 [Debug] 第一位英雄数据:', {
+              name: firstChamp.name,
+              id: firstChamp.id,
+              path: firstChamp.squarePortraitPath // 看看这里到底是 1.png 还是 Annie.png
+          })
+      }
       lcuState.setChampionList(can_pick_champ)
       lcuState.setChampionListLoad(true)
       console.log(`成功加载${can_pick_champ.length}个英雄`)
     }
+  }
+
+  registerImgProtocol(): void {
+    // 防御性检查：防止热重载时重复注册报错
+    if (protocol.isProtocolHandled('lcu-img')) {
+      console.log('⚠️ [ChampAsset] lcu-img 协议已注册，跳过')
+      return
+    }
+
+    protocol.handle('lcu-img', async (request) => {
+      let url = request.url.replace('lcu-img://', '')
+      const creds = lcuState.credential
+      // 如果还没连上 LCU，直接返回错误
+      if (!creds) {
+        return new Response('LCU Not Connected', { status: 503 })
+      }
+
+      while (url.startsWith('/')) {
+        url = url.slice(1)
+      }
+
+      // 构造 Basic Auth 头
+      const authHeader = `Basic ${Buffer.from(`riot:${creds.password}`).toString('base64')}`
+
+      try {
+        // 使用 electron 的 net 模块去请求本地 LCU
+        const response = await net.fetch(`https://127.0.0.1:${creds.port}/${url}`, {
+          headers: {
+            Authorization: authHeader
+          },
+          bypassCustomProtocolHandlers: true
+        })
+
+        return response
+      } catch (error) {
+        console.error('Image Proxy Error:', error)
+        return new Response('Image Load Failed', { status: 404 })
+      }
+    })
+
+    console.log('✅ [ChampAsset] 自定义图片协议 lcu-img:// 已激活')
   }
 }

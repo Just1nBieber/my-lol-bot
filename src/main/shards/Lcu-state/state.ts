@@ -9,7 +9,7 @@ class LcuState {
   socket: LeagueWebSocket | null = null
   localPlayerCellId: number = -1
   flatArray: LcuAction[] = []
-  isAutoPickEnable: boolean = false
+  isAutoPickEnabled: boolean = false
   targetChampionObj: pickObj = {
     championId: 200,
     completed: true
@@ -52,6 +52,16 @@ class LcuState {
 
   setChampionListLoad(bol: boolean): void {
     this.isLoaded = bol
+  }
+
+  setTargetChampionId(id: number): void {
+    this.targetChampionObj.championId = id
+    console.log('Main: targetChampionId set to', id)
+  }
+
+  setIsAutoPickEnabled(enabled: boolean): void {
+    this.isAutoPickEnabled = enabled
+    console.log('Main: isAutoPickEnabled set to', enabled)
   }
 }
 

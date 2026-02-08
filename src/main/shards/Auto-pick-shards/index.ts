@@ -73,7 +73,12 @@ export class AutoPickShard implements BaiYueKuiShard {
           break
         case 'pick':
           console.log('正在进行pick阶段')
-          this.toPickChamp(IhaveCurrentActionOrNot.id)
+          if (lcuState.isAutoPickEnabled) {
+            console.log('🤖 自动选人已开启，准备执行...')
+            this.toPickChamp(IhaveCurrentActionOrNot.id)
+          } else {
+            console.log('🛑 自动选人未开启，跳过操作')
+          }
           break
         default:
           console.log('未知任务类型:', IhaveCurrentActionOrNot.type)
@@ -81,18 +86,37 @@ export class AutoPickShard implements BaiYueKuiShard {
     })
   }
 
-  toPickChamp(actionId: number): void {
+  async toPickChamp(actionId: number): Promise<void> {
+    // 改为 async
     const credential = lcuState.credential
-    if (credential) {
-      const res = createHttp1Request(
+    const targetId = lcuState.targetChampionObj.championId // 🔥 修复点 2：从 State 读取目标ID
+    if (!credential || targetId === 0) {
+      console.warn('❌ 无法选人：凭据丢失 或 未设定目标英雄')
+      return
+    }
+
+    try {
+      console.log(`🎯 尝试秒选英雄 ID: ${targetId}, ActionID: ${actionId}`)
+
+      const res = await createHttp1Request(
         {
           method: 'PATCH',
           url: `/lol-champ-select/v1/session/actions/${actionId}`,
-          body: this.preferTOpick
+          body: {
+            championId: targetId,
+            completed: true // 🔥 修复点 3：直接锁定！(如果只想亮头像不锁定，设为 false)
+          }
         },
         credential
       )
+
+      if (res.ok) {
+        console.log('✅ 秒选成功！')
+      } else {
+        console.error('❌ 秒选请求失败:', res.status)
+      }
+    } catch (e) {
+      console.error('❌ 秒选过程出错:', e)
     }
-    return
   }
 }
