@@ -34,12 +34,13 @@ export const useLcuStateStore = defineStore('lcuState', () => {
   // 初始化
   const init = async () => {
     try {
+      // ipcRenderer.invoke： 双向通信，等待Promise返回 ---> ipcMain.handle()
       const initialState = await window.electron.ipcRenderer.invoke('lcu-get-state')
       updateState(initialState)
     } catch (e) {
       console.error('Failed to get initial state', e)
     }
-
+    // on监听事件 ----> 后端主动推送
     window.electron.ipcRenderer.on('lcu-state-update', (_event, newState) => {
       updateState(newState)
     })
@@ -56,6 +57,7 @@ export const useLcuStateStore = defineStore('lcuState', () => {
   const setIsAutoPickEnabled = (enabled: boolean) => {
     // 乐观更新
     isAutoPickEnabled.value = enabled
+    // send 单向发送，不用等待回复
     window.electron.ipcRenderer.send('lcu-action', {
       type: 'setIsAutoPickEnabled',
       payload: enabled

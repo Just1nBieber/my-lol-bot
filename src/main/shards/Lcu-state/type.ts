@@ -1,15 +1,17 @@
+import { LeagueWebSocket, Credentials } from 'league-connect'
+
 // 🎯 核心知识点：LCU 的 Action 结构
 export interface LcuAction {
-  id: number             // 动作ID (我们发请求就需要这个！)
-  actorCellId: number    // 谁在执行这个动作 (对应 localPlayerCellId)
-  championId: number     // 当前选了哪个英雄 (0 代表还没选)
-  type: 'pick' | 'ban'   // 动作类型：是选人还是Ban人？
-  completed: boolean     // 是否已锁定？
-  isInProgress: boolean  // 是否轮到当前动作执行？
+  id: number // 动作ID (我们发请求就需要这个！)
+  actorCellId: number // 谁在执行这个动作 (对应 localPlayerCellId)
+  championId: number // 当前选了哪个英雄 (0 代表还没选)
+  type: 'pick' | 'ban' // 动作类型：是选人还是Ban人？
+  completed: boolean // 是否已锁定？
+  isInProgress: boolean // 是否轮到当前动作执行？
 }
 
 // 定义一个联合类型，这就是最好的“文档”
-export type GameflowPhase = 
+export type GameflowPhase =
   | 'None'
   | 'Lobby'
   | 'Matchmaking'
@@ -22,12 +24,10 @@ export type GameflowPhase =
   | 'Reconnect'
   | 'TerminatedInError'
 
-
- export interface LcuSessionData {
+export interface LcuSessionData {
   localPlayerCellId: number
   actions: LcuAction[][] // 二维数组
 }
-
 
 // 英雄资源
 export interface ChampionSimple {
@@ -42,4 +42,33 @@ export interface pickObj {
   championId: number
   completed: boolean
 }
+// ../Lcu-state/type.ts
 
+export interface LcuStateSnapshot {
+  /** 当前游戏流程阶段 */
+  phase: GameflowPhase
+
+  /** LCU 连接凭证（端口、密码等） */
+  credential: Credentials | null
+
+  /** LCU 的 WebSocket 实例，在纯净快照中通常被置为 null */
+  socket: LeagueWebSocket | null
+
+  /** 本地玩家在英雄选择房间中的座位号 (Cell ID) */
+  localPlayerCellId: number
+
+  /** 英雄选择/禁用阶段的动作列表（通常是由 2D 数组展平而来） */
+  flatArray: LcuAction[]
+
+  /** 是否开启了自动秒选功能 */
+  isAutoPickEnabled: boolean
+
+  /** 自动秒选的目标英雄配置 */
+  targetChampionObj: pickObj
+
+  /** 获取到的英雄列表概览 */
+  championList: ChampionSimple[]
+
+  /** 基础数据是否已经加载完毕 */
+  isLoaded: boolean
+}

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useLcuStateStore } from '@renderer/store/lcuState'
+import { useLcuStateStore } from '../store/lcuState'
 
 const lcuStateStore = useLcuStateStore()
 const searchQuery = ref('')
 
 const filteredChampions = computed(() => {
   const query = searchQuery.value.toLowerCase()
-  return lcuStateStore.championList.filter(
+  const list = lcuStateStore.championList
+  return list.filter(
     (c) => c.name.toLowerCase().includes(query) || c.alias.toLowerCase().includes(query)
   )
 })
@@ -27,6 +28,8 @@ const toggleAutoPick = () => {
 
 const selectChampion = (id: number) => {
   lcuStateStore.setTargetChampionId(id)
+
+  console.log('哈哈')
 }
 </script>
 

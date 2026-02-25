@@ -5,9 +5,10 @@ import icon from '../../resources/icon.png?asset'
 import { shardManager } from '@shared/yuekui-shard/manager'
 import './shards/Hello-world-shard/index'
 import './shards/Lcu-connect/index'
-import './shards/Auto-pick-shards/index'
-import './shards/Champ-asset-shards/index'
-import './shards/Renderer-sync/index'
+import './shards/Auto-pick-shard/index'
+import './shards/Champ-asset-shard/index'
+import './shards/System-protocol-shard/index'
+import './shards/Render-sync/index'
 
 app.commandLine.appendSwitch('ignore-certificate-errors')
 
@@ -17,12 +18,22 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
+    frame: false, // 去除默认边框
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  })
+
+  // 窗口控制 IPC
+  ipcMain.on('window-minimize', () => {
+    mainWindow.minimize()
+  })
+
+  ipcMain.on('window-close', () => {
+    mainWindow.close()
   })
 
   mainWindow.on('ready-to-show', () => {
