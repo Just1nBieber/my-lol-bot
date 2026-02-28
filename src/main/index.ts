@@ -7,6 +7,7 @@ import './shards/Hello-world-shard/index'
 import './shards/Lcu-connect/index'
 import './shards/Auto-pick-shard/index'
 import './shards/Champ-asset-shard/index'
+import './shards/User-info-shard/index'
 import './shards/System-protocol-shard/index'
 import './shards/Render-sync/index'
 
@@ -15,8 +16,10 @@ app.commandLine.appendSwitch('ignore-certificate-errors')
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1300,
+    height: 800,
+    minWidth: 840,
+    minHeight: 620,
     show: false,
     frame: false, // 去除默认边框
     autoHideMenuBar: true,

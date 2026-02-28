@@ -37,6 +37,40 @@ export interface ChampionSimple {
   squarePortraitPath: string // 头像路径
 }
 
+/**
+ * 召唤师段位信息（单队列）。
+ */
+export interface RankInfo {
+  climbingIndicatorActive?: boolean //正在攀登，隐藏分高
+  queueType: string // 排位模式类型
+  tier?: string // 大段位
+  division?: string // 小段位
+  leaguePoints?: number // 胜点
+  wins?: number // 胜场
+  losses?: number // 负场
+  highestDivision?: string // 最高小段
+  highestTier?: string //最高大段
+  previousSeasonHighestTier?: string
+  previousSeasonHighestDivision?: string
+  previousSeasonEndTier?: string
+  previousSeasonEndDivision?: string
+}
+
+/**
+ * 召唤师基础信息 + 段位信息。
+ */
+export interface SummonerInfo {
+  gameName: string
+  privacy: boolean
+  summonerId?: number
+  summonerLevel: number
+  tagLine: string
+  profileIconId: number
+  puuid?: string
+  soloRank: RankInfo | null
+  flexRank: RankInfo | null
+}
+
 // 英雄选择
 export interface pickObj {
   championId: number
@@ -68,6 +102,9 @@ export interface LcuStateSnapshot {
 
   /** 获取到的英雄列表概览 */
   championList: ChampionSimple[]
+
+  /** 召唤师基础信息与段位 */
+  summonerInfo: SummonerInfo | null
 
   /** 基础数据是否已经加载完毕 */
   isLoaded: boolean

@@ -41,7 +41,6 @@ export class LcuConnectShard implements BaiYueKuiShard {
             lcuState.credential.pid
           )
         }
-
         // 4.建立websocket连接，监听游戏流，保持与客户端的连接
         this._ws = await createWebSocketConnection({
           authenticationOptions: { awaitConnection: true, pollInterval: 5000 }

@@ -1,5 +1,5 @@
 import type { Credentials, LeagueWebSocket } from 'league-connect'
-import type { LcuAction, GameflowPhase, pickObj, ChampionSimple } from './type'
+import type { LcuAction, GameflowPhase, pickObj, ChampionSimple, SummonerInfo } from './type'
 
 import { makeAutoObservable } from 'mobx'
 
@@ -16,6 +16,7 @@ class LcuState {
   }
   championList: ChampionSimple[] = []
   isLoaded: boolean = false
+  summonerInfo: SummonerInfo | null = null
 
   constructor() {
     makeAutoObservable(this)
@@ -52,6 +53,15 @@ class LcuState {
 
   setChampionListLoad(bol: boolean): void {
     this.isLoaded = bol
+  }
+
+  /**
+   * 写入召唤师基础信息与段位信息。
+   *
+   * @param info - 召唤师信息对象或 null（例如：{ displayName: 'Faker', profileIconId: 1234, puuid: 'xxxx', soloRank: null, flexRank: null }）
+   */
+  setSummonerInfo(info: SummonerInfo | null): void {
+    this.summonerInfo = info
   }
 
   setTargetChampionId(id: number): void {

@@ -49,8 +49,6 @@ export class RendererSyncShard implements BaiYueKuiShard {
           lcuState.setTargetChampionId(action.payload)
           break
         case 'setIsAutoPickEnabled':
-          // ⚠️ 请确认 state.ts 里是 setIsAutoPickEnable 还是 setIsAutoPickEnabled (注意 'd')
-          // 这里我保留你代码里的 Enable (无d)
           lcuState.setIsAutoPickEnabled(action.payload)
           break
       }

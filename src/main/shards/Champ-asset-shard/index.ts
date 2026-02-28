@@ -59,7 +59,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
         const can_pick_champ = C_A_DATA.filter((item) => {
           return item.id != -1
         })
-        console.log(can_pick_champ)
+        // console.log(can_pick_champ)
         lcuState.setChampionList(can_pick_champ)
         lcuState.setChampionListLoad(true)
         console.log(`成功加载${can_pick_champ.length}个英雄`)

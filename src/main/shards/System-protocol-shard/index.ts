@@ -6,25 +6,22 @@ import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
 
 /**
- * 注册自定义图片协议的配置项
+ * 图片代理协议的配置项。
  */
 export interface ImgProtocolOptions {
-  /** * @param scheme - 自定义的协议前缀名称。
-   * @example 'lcu-img' (在前端使用时写作 <img src="lcu-img://..." />)
-   */
+  /** 协议前缀名称 */
   scheme: string
-  /** * @param getCredentials - 获取 LCU 凭据的闭包函数，确保每次请求能拿到最新凭据。
-   * @example () => lcuState.credential
-   */
+  /** 获取 LCU 凭据的闭包函数，确保每次请求能拿到最新凭据 */
   getCredentials: () => Credentials | null | undefined
 }
 
 /**
  * 注册系统级的图片代理协议，用于绕过跨域并带上 LCU 认证信息。
- * * @param opts - 协议配置项
+ *
+ * @param opts.scheme - 协议前缀名称 (例如: 'lcu-img')
+ * @param opts.getCredentials - 获取凭据的方法 (例如: () => lcuState.credential)
  * @returns 销毁函数，调用后可注销该协议
  */
-
 export const registerImgProtocol = (opts: ImgProtocolOptions): (() => void) => {
   if (protocol.isProtocolHandled(opts.scheme)) return () => undefined
 

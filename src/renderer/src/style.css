@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/* ==========================================
+   定制电竞风滚动条 (精准绑定 custom-scrollbar 类)
+========================================== */
+
+/* 1. 现代 W3C 标准写法 (针对最新版 Electron/Chrome 内核) */
+* {
+  scrollbar-width: thin; /* 细滚动条 */
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent; /* 滑块颜色 轨道透明 */
+}
+
+/* 2. 传统 Webkit 写法 (全域强制覆盖，连 body 也不放过) */
+@import 'tailwindcss';
+
+/* ==========================================
+  纯净电竞滚动条 (绝对不能加 scrollbar-width)
+  ========================================== 
+*/
+
+/* 1. 全局拦截滚动条，只用 webkit 伪类 */
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+/* 2. 透明轨道 */
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+/* 3. 圆角半透明滑块 */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important;
+}
+
+/* 4. 悬停状态高亮 */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 5. 隐藏上下箭头 */
+::-webkit-scrollbar-button {
+  display: none !important;
+}
