@@ -29,6 +29,9 @@
     // 业务逻辑：方便你在组件里引用其他组件或资源。
     // 例子：import Button from '@renderer/components/Button'
     "paths": {
+      "@/*": [
+        "src/renderer/src/*"
+      ],
       "@renderer/*": [
         "src/renderer/src/*"
       ]
