@@ -3,20 +3,33 @@ import type { LcuAction, GameflowPhase, pickObj, ChampionSimple, SummonerInfo } 
 
 import { makeAutoObservable } from 'mobx'
 
-class LcuState {
-  phase: GameflowPhase = 'None'
-  credential: Credentials | null = null
-  socket: LeagueWebSocket | null = null
-  localPlayerCellId: number = -1
-  flatArray: LcuAction[] = []
-  isAutoPickEnabled: boolean = false
-  targetChampionObj: pickObj = {
+const getDefaultState = () => ({
+  phase: 'None' as GameflowPhase,
+  credential: null as Credentials | null,
+  socket: null as LeagueWebSocket | null,
+  localPlayerCellId: -1,
+  flatArray: [] as LcuAction[],
+  isAutoPickEnabled: false,
+  targetChampionObj: {
     championId: 200,
     completed: true
-  }
-  championList: ChampionSimple[] = []
-  isLoaded: boolean = false
-  summonerInfo: SummonerInfo | null = null
+  } as pickObj,
+  championList: [] as ChampionSimple[],
+  isLoaded: false,
+  summonerInfo: null as SummonerInfo | null
+})
+
+class LcuState {
+  phase = getDefaultState().phase
+  credential = getDefaultState().credential
+  socket = getDefaultState().socket
+  localPlayerCellId = getDefaultState().localPlayerCellId
+  flatArray = getDefaultState().flatArray
+  isAutoPickEnabled = getDefaultState().isAutoPickEnabled
+  targetChampionObj = getDefaultState().targetChampionObj
+  championList = getDefaultState().championList
+  isLoaded = getDefaultState().isLoaded
+  summonerInfo = getDefaultState().summonerInfo
 
   constructor() {
     makeAutoObservable(this)
@@ -72,6 +85,25 @@ class LcuState {
   setIsAutoPickEnabled(enabled: boolean): void {
     this.isAutoPickEnabled = enabled
     console.log('Main: isAutoPickEnabled set to', enabled)
+  }
+
+  resetState(): void {
+    console.log('🧹 开始清理 LCU 全局状态...')
+
+    // 【避坑】物理切断旧的 WebSocket 连接
+    if (this.socket) {
+      try {
+        this.socket.close()
+        console.log('✅ 旧的 WebSocket 连接已物理切断')
+      } catch (e) {
+        console.error('❌ 切断 WebSocket 时发生错误', e)
+      }
+    }
+
+    // 利用 Object.assign，将所有属性瞬间恢复到出厂状态
+    // MobX 会自动感知到这些变化并通知视图更新！
+    Object.assign(this, getDefaultState())
+    console.log('✨ 状态已全部恢复出厂设置')
   }
 }
 

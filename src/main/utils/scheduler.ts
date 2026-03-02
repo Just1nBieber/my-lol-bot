@@ -30,6 +30,7 @@ export async function pollUntil(
       await sleep(interval)
     } catch (e) {
       console.log(e, '连接错误')
+      await sleep(5000)
     }
   }
 }

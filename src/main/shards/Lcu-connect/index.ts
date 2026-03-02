@@ -4,6 +4,7 @@ import type { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import { authenticate, createWebSocketConnection } from 'league-connect'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
+import { sleep } from '../../utils/scheduler'
 
 const SHARD_ID = 'lcu-connect'
 @Shard(SHARD_ID)
@@ -66,11 +67,12 @@ export class LcuConnectShard implements BaiYueKuiShard {
 
         // 6. 清理ws
         this._ws = null
-        lcuState.setPhase('None') // 重置状态
+        lcuState.resetState()
 
         // 👇这个catch 是和最大的try一起的
       } catch (e) {
         console.error(e)
+        await sleep(5000)
       }
     }
   }
@@ -79,7 +81,6 @@ export class LcuConnectShard implements BaiYueKuiShard {
     this._isDispose = true // 暂停循环
     if (this._ws) {
       this._ws.close()
-      lcuState.setWebSocket(null)
       this._ws = null
     }
   }

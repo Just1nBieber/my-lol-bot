@@ -11,7 +11,18 @@ import './shards/User-info-shard/index'
 import './shards/System-protocol-shard/index'
 import './shards/Render-sync/index'
 
+let isQuitting = false
+
 app.commandLine.appendSwitch('ignore-certificate-errors')
+
+process.on('uncaughtException', (error) => {
+  console.error('【系统级崩溃拦截】:', error)
+  // 如果以后接入了日志库，写到日志里
+})
+
+process.on('unhandledRejection', (error) => {
+  console.error('【未捕获的异步拒绝】:', error)
+})
 
 function createWindow(): void {
   // Create the browser window.
@@ -94,10 +105,16 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-  app.on('will-quit', async () => {
-    console.log('正在关闭所有后台服务...')
-    await shardManager.disposeAll()
-  })
+})
+
+app.on('will-quit', async (e) => {
+  if (isQuitting) return
+  e.preventDefault()
+  console.log('正在关闭所有后台服务...')
+  await shardManager.disposeAll()
+  isQuitting = true
+  console.log('后台服务清理完毕，安全退出！')
+  app.exit(0)
 })
 
 // In this file you can include the rest of your app's specific main process
