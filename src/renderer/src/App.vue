@@ -4,13 +4,12 @@ import ChampionGrid from './components/ChampionGrid/ChampionGrid.vue'
 import UserInfoCard from './components/user-info-card/UserInfoCard.vue'
 import OuterCpg from './components/OuterCpg/OuterCpg.vue'
 import Navbar from './components/NavBar/Navbar.vue'
-
 const showAutoPick = ref(false)
 </script>
 
 <template>
   <div
-    class="flex flex-col custom-scroll-container w-screen h-screen bg-zinc-950 text-white overflow-auto"
+    class="flex flex-col custom-scroll-container w-screen h-screen bg-background/60 text-foreground overflow-auto"
   >
     <Navbar @show="showAutoPick = true" />
     <!-- 用户信息卡片 -->
@@ -33,9 +32,9 @@ body {
 
 /* 2. 精准狙击我们自己的滚动容器 */
 .custom-scroll-container {
-  /* 强制兼容最新的火狐/Chrome标准规则 */
+  /* 🌟 [重构点]：使用 border 变量，白天是浅灰，黑夜是深灰 */
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 /* 3. 精准狙击 Webkit 内核 (Electron) */
@@ -49,12 +48,15 @@ body {
 }
 
 .custom-scroll-container::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2) !important;
+  /* 🌟 [重构点]：同样使用 border 变量作为基础色 */
+  background-color: hsl(var(--border)) !important;
   border-radius: 9999px !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  /* 去掉黑色边框，保持极致扁平化 */
+  border: 1px solid transparent !important;
 }
 
 .custom-scroll-container::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  /* 🌟 [重构点]：鼠标悬浮时，使用 muted-foreground 加深颜色，交互反馈更明显 */
+  background-color: hsl(var(--muted-foreground)) !important;
 }
 </style>

@@ -1,7 +1,17 @@
 import type { Credentials, LeagueWebSocket } from 'league-connect'
-import type { LcuAction, GameflowPhase, pickObj, ChampionSimple, SummonerInfo } from './type'
+import type {
+  LcuAction,
+  GameflowPhase,
+  pickObj,
+  ChampionSimple,
+  SummonerInfo,
+  QueryMatchedIndex
+} from './type'
+import type { ItemsDictionary, SpellsDictionary, PerksDictionary } from '../Champ-asset-shard/type'
+import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
 
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, observable } from 'mobx'
+import { SimpleMatchDTO } from '../Simple-matched-shard/type'
 
 const getDefaultState = () => ({
   phase: 'None' as GameflowPhase,
@@ -16,7 +26,16 @@ const getDefaultState = () => ({
   } as pickObj,
   championList: [] as ChampionSimple[],
   isLoaded: false,
-  summonerInfo: null as SummonerInfo | null
+  summonerInfo: null as SummonerInfo | null,
+  simpleMatchedList: [] as SimpleMatchDTO[],
+  arenaAugments: {} as Record<number, ArenaAugmentDictItem>,
+  queryMatchedIndex: {
+    begIndex: 0,
+    endIndex: 19
+  } as QueryMatchedIndex,
+  itemsDictionary: {} as ItemsDictionary,
+  spellsDictionary: {} as SpellsDictionary,
+  perksDictionary: {} as PerksDictionary
 })
 
 class LcuState {
@@ -30,9 +49,18 @@ class LcuState {
   championList = getDefaultState().championList
   isLoaded = getDefaultState().isLoaded
   summonerInfo = getDefaultState().summonerInfo
+  simpleMatchedList = getDefaultState().simpleMatchedList
+  arenaAugments = getDefaultState().arenaAugments
+  queryMatchedIndex = getDefaultState().queryMatchedIndex
+  itemsDictionary = getDefaultState().itemsDictionary
+  spellsDictionary = getDefaultState().spellsDictionary
+  perksDictionary = getDefaultState().perksDictionary
 
   constructor() {
-    makeAutoObservable(this)
+    makeAutoObservable(this, {
+      // 告诉 MobX：对 socket 属性，只做引用监听（ref），绝对不要深度代理（Proxy）！
+      socket: observable.ref
+    })
   }
 
   setPhase(newPhase: GameflowPhase): void {
@@ -77,6 +105,23 @@ class LcuState {
     this.summonerInfo = info
   }
 
+  setSimpleMatchedList(payload: SimpleMatchDTO[]): void {
+    this.simpleMatchedList = payload
+  }
+
+  /**
+   * 写入斗魂竞技场海克斯字典。
+   *
+   * @param dict - 海克斯字典（例如：{ 1234: { name: '镜花水月', desc: '...', iconPath: '/lol-game-data/assets/...' } }）
+   */
+  setArenaAugments(dict: Record<number, ArenaAugmentDictItem>): void {
+    this.arenaAugments = dict
+  }
+
+  setQueryMatchedIndex(payload: QueryMatchedIndex): void {
+    this.queryMatchedIndex = payload
+  }
+
   setTargetChampionId(id: number): void {
     this.targetChampionObj.championId = id
     console.log('Main: targetChampionId set to', id)
@@ -87,23 +132,56 @@ class LcuState {
     console.log('Main: isAutoPickEnabled set to', enabled)
   }
 
-  resetState(): void {
-    console.log('🧹 开始清理 LCU 全局状态...')
+  setItemsDictionary(items: ItemsDictionary): void {
+    this.itemsDictionary = items
+  }
 
-    // 【避坑】物理切断旧的 WebSocket 连接
+  setSpellsDictionary(spells: SpellsDictionary): void {
+    this.spellsDictionary = spells
+  }
+
+  setPerksDictionary(perks: PerksDictionary): void {
+    this.perksDictionary = perks
+  }
+
+  resetState(): void {
+    console.log('🧹 侦测到客户端断开，开始清理 LCU 动态状态...')
+
+    // 1. 物理切断 WebSocket
     if (this.socket) {
       try {
         this.socket.close()
         console.log('✅ 旧的 WebSocket 连接已物理切断')
       } catch (e) {
         console.error('❌ 切断 WebSocket 时发生错误', e)
+      } finally {
+        this.socket = null
       }
     }
 
-    // 利用 Object.assign，将所有属性瞬间恢复到出厂状态
-    // MobX 会自动感知到这些变化并通知视图更新！
-    Object.assign(this, getDefaultState())
-    console.log('✨ 状态已全部恢复出厂设置')
+    // 2. 获取干净的默认状态
+    const defaultState = getDefaultState()
+
+    // 3. 🎯 精准重置：只清空和玩家/对局相关的动态数据
+    this.phase = defaultState.phase
+    this.credential = defaultState.credential
+    this.localPlayerCellId = defaultState.localPlayerCellId
+    this.flatArray = defaultState.flatArray
+    this.isAutoPickEnabled = defaultState.isAutoPickEnabled
+    this.targetChampionObj = defaultState.targetChampionObj
+    this.championList = defaultState.championList
+    this.isLoaded = defaultState.isLoaded
+    this.summonerInfo = defaultState.summonerInfo
+    this.simpleMatchedList = defaultState.simpleMatchedList
+    this.queryMatchedIndex = defaultState.queryMatchedIndex
+    // 4. 🛡️ 下面这四个静态字典，坚决不清空！让它们留在内存里！
+    // this.arenaAugments
+    // this.itemsDictionary
+    // this.spellsDictionary
+    // this.perksDictionary
+
+    console.log(`✨ 动态状态已恢复出厂设置。
+🛡️ 静态字典资源 (海克斯/装备/技能等) 依然安全存活于内存中。`)
   }
 }
 

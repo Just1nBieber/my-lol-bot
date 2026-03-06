@@ -1,5 +1,6 @@
 import { LeagueWebSocket, Credentials } from 'league-connect'
-
+import type { SimpleMatchDTO } from '@main/shards/Simple-matched-shard/type.ts'
+import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
 // 🎯 核心知识点：LCU 的 Action 结构
 export interface LcuAction {
   id: number // 动作ID (我们发请求就需要这个！)
@@ -76,6 +77,11 @@ export interface pickObj {
   championId: number
   completed: boolean
 }
+
+export interface QueryMatchedIndex {
+  begIndex: number
+  endIndex: number
+}
 // ../Lcu-state/type.ts
 
 export interface LcuStateSnapshot {
@@ -105,6 +111,14 @@ export interface LcuStateSnapshot {
 
   /** 召唤师基础信息与段位 */
   summonerInfo: SummonerInfo | null
+
+  /** 简单匹配信息 */
+  simpleMatchedList: SimpleMatchDTO[]
+
+  /** 斗魂竞技场海克斯字典 */
+  arenaAugments: Record<number, ArenaAugmentDictItem>
+
+  queryMatchedIndex: QueryMatchedIndex
 
   /** 基础数据是否已经加载完毕 */
   isLoaded: boolean

@@ -16,7 +16,8 @@
     // 如果没有这一行，你在组件里调用 window.api.sendMessage() 时，编辑器会报错说找不到。
     "src/preload/*.d.ts",           
     
-    "src/shared/**/*"               // 共享代码 (类型定义、工具函数)
+    "src/shared/**/*",
+    "src/main/**/*"               // 共享代码 (类型定义、工具函数)
   ],
 
   "compilerOptions": {
@@ -34,6 +35,9 @@
       ],
       "@renderer/*": [
         "src/renderer/src/*"
+      ],
+      "@main/*": [
+        "src/main/*"
       ]
     }
   }

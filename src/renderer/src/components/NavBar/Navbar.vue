@@ -1,6 +1,10 @@
 <script setup lang="ts">
 // 记得引入刚刚抽离的样式对象
 import { navBarStyles } from './style'
+import { isDark, toggleDark } from '@/composables/useTheme'
+import { Button } from '@/components/ui/button'
+
+import { Sun, Moon } from 'lucide-vue-next'
 
 const handleMinimize = (): void => {
   window.api.minimize()
@@ -22,10 +26,22 @@ defineEmits(['show'])
 
     <div :class="navBarStyles.windowControls">
       <button @click="$emit('show')" :class="navBarStyles.heroButton">
-        <img :class="navBarStyles.heroIcon" src="../../assets/images/nav-bar-icon/hero.png" alt="" />
+        <img
+          :class="navBarStyles.heroIcon"
+          src="../../assets/images/nav-bar-icon/hero.png"
+          alt=""
+        />
       </button>
-
-      <button :class="navBarStyles.minimizeButton" @click="handleMinimize">
+      <Button
+        :class="navBarStyles.windowButton"
+        variant="ghost"
+        size="icon"
+        @click="toggleDark()"
+      >
+        <Sun v-if="!isDark" class="h-5 w-5 text-yellow-400" />
+        <Moon v-else class="h-5 w-5 text-slate-700" />
+      </Button>
+      <button :class="navBarStyles.windowButton" @click="handleMinimize">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -41,7 +57,7 @@ defineEmits(['show'])
         </svg>
       </button>
 
-      <button :class="navBarStyles.closeButton" @click="handleClose">
+      <button :class="navBarStyles.windowButton" @click="handleClose">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"

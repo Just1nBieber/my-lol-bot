@@ -1,17 +1,32 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @import './base.css';
 
+/* 1. 核心变体监听：让 dark: 前缀不仅看系统，也看 .dark 类名 */
+@custom-variant dark (&:where(.dark, .dark *));
+@theme {
+  /* 🌟 核心：告诉 Tailwind，名为 card 的颜色，其值取自 --card 变量 */
+  --color-card: hsl(var(--card));
+  --color-muted: hsl(var(--muted));
+}
+
+/* 2. 亮色模式配置 (默认值) */
 :root {
+  /* 基础背景与文字 */
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
+
+  /* 强制接管 Tailwind v4 内部文本变量，防止被劫持为默认黑 */
+  --color-text: hsl(240 10% 3.9%);
+
+  /* 组件色彩体系 (还原你的原始定义) */
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
   --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
+  --primary-foreground: 240 0% 10%;
   --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
+  --secondary-foreground: 240 10% 10%;
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
   --accent: 240 4.8% 95.9%;
@@ -22,207 +37,78 @@
   --input: 240 5.9% 90%;
   --ring: 240 10% 3.9%;
   --radius: 0.5rem;
+
+  --win: 142 71% 45%; /* 经典的电竞高亮绿/蓝 */
+  --loss: 0 84.2% 60.2%; /* 战败红 */
+  --hextech: 217 91% 60%; /* 英雄联盟客户端那种特有的亮蓝色 */
+  --gold: 43 74% 49%; /* 用于高段位或特殊强调的金边 */
 }
 
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+/* 3. 深色模式配置 (高权重覆盖) */
+html.dark,
+[class~='dark'] {
+  /* 基础背景与文字：强制设为浅色 */
+  --background: 240 10% 3.9% !important;
+  --foreground: 0 0% 98% !important;
+
+  /* 核心修复：强制让 v4 文本颜色在深色模式下变白 */
+  --color-text: hsl(0 0% 98%) !important;
+
+  --card: 240 10% 3.9% !important;
+  --card-foreground: 0 0% 98% !important;
+  --popover: 240 10% 3.9% !important;
+  --popover-foreground: 0 0% 98% !important;
+  --primary: 0 0% 98% !important;
+  --primary-foreground: 240 5.9% 10% !important;
+  --secondary: 240 3.7% 15.9% !important;
+  --secondary-foreground: 0 0% 98% !important;
+  --muted: 240 3.7% 15.9% !important;
+  --muted-foreground: 240 5% 64.9% !important;
+  --accent: 240 3.7% 15.9% !important;
+  --accent-foreground: 0 0% 98% !important;
+  --destructive: 0 62.8% 30.6% !important;
+  --destructive-foreground: 0 0% 98% !important;
+  --border: 240 3.7% 15.9% !important;
+  --input: 240 3.7% 15.9% !important;
+  --ring: 240 4.9% 83.9% !important;
+
+  --win: 142 71% 45%; /* 经典的电竞高亮绿/蓝 */
+  --loss: 0 84.2% 60.2%; /* 战败红 */
+  --hextech: 217 91% 60%; /* 英雄联盟客户端那种特有的亮蓝色 */
+  --gold: 43 74% 49%; /* 用于高段位或特殊强调的金边 */
 }
 
+/* 4. 基础层应用 */
 @layer base {
   * {
+    /* 所有的 border 自动跟随 --border 变量变色 */
     border-color: hsl(var(--border));
   }
 
   body {
-    background: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+    min-height: 100vh;
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      'Noto Sans',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-}
 
-
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-size: cover;
-  user-select: none;
-}
-
-code {
-  font-weight: 600;
-  padding: 3px 5px;
-  border-radius: 2px;
-  background-color: var(--color-background-mute);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    SF Mono,
-    Menlo,
-    Consolas,
-    Liberation Mono,
-    monospace;
-  font-size: 85%;
-}
-
-#app {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  margin-bottom: 80px;
-}
-
-.logo {
-  margin-bottom: 20px;
-  -webkit-user-drag: none;
-  height: 128px;
-  width: 128px;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 1.2em #6988e6aa);
-}
-
-.creator {
-  font-size: 14px;
-  line-height: 16px;
-  color: var(--ev-c-text-2);
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.text {
-  font-size: 28px;
-  color: var(--ev-c-text-1);
-  font-weight: 700;
-  line-height: 32px;
-  text-align: center;
-  margin: 0 10px;
-  padding: 16px 0;
-}
-
-.tip {
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--ev-c-text-2);
-  font-weight: 600;
-}
-
-.vue {
-  background: -webkit-linear-gradient(315deg, #42d392 25%, #647eff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
-}
-
-.ts {
-  background: -webkit-linear-gradient(315deg, #3178c6 45%, #f0dc4e);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
-}
-
-.actions {
-  display: flex;
-  padding-top: 32px;
-  margin: -6px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
-.action {
-  flex-shrink: 0;
-  padding: 6px;
-}
-
-.action a {
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  border: 1px solid transparent;
-  text-align: center;
-  font-weight: 600;
-  white-space: nowrap;
-  border-radius: 20px;
-  padding: 0 20px;
-  line-height: 38px;
-  font-size: 14px;
-  border-color: var(--ev-button-alt-border);
-  color: var(--ev-button-alt-text);
-  background-color: var(--ev-button-alt-bg);
-}
-
-.action a:hover {
-  border-color: var(--ev-button-alt-hover-border);
-  color: var(--ev-button-alt-hover-text);
-  background-color: var(--ev-button-alt-hover-bg);
-}
-
-.versions {
-  position: absolute;
-  bottom: 30px;
-  margin: 0 auto;
-  padding: 15px 0;
-  font-family: 'Menlo', 'Lucida Console', monospace;
-  display: inline-flex;
-  overflow: hidden;
-  align-items: center;
-  border-radius: 22px;
-  background-color: #202127;
-  backdrop-filter: blur(24px);
-}
-
-.versions li {
-  display: block;
-  float: left;
-  border-right: 1px solid var(--ev-c-gray-1);
-  padding: 0 20px;
-  font-size: 14px;
-  line-height: 14px;
-  opacity: 0.8;
-  &:last-child {
-    border: none;
+  /* 针对 text-foreground 这种高频类名做显式绑定，双保险 */
+  .text-foreground {
+    color: hsl(var(--foreground)) !important;
   }
-}
-
-@media (max-width: 720px) {
-  .text {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 620px) {
-  .versions {
-    display: none;
-  }
-}
-
-@media (max-width: 350px) {
-  .tip,
-  .actions {
-    display: none;
+  .text-destructive-foreground {
+    color: hsl(var(--destructive-foreground)) !important;
   }
 }

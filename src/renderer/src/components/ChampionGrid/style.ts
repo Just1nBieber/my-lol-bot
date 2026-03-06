@@ -1,31 +1,35 @@
+// 文件：ChampionGrid.style.ts
 export const championSelectStyles = {
-  // 1. 页面级布局与毛玻璃面板
+  // 1. 页面级布局
   pageWrapper: 'w-full max-w-5xl p-6 mx-auto',
-  glassPanel:
-    'p-6 text-white border shadow-2xl bg-white/10 backdrop-blur-md border-white/20 rounded-xl',
 
-  // 2. 顶部控制栏 (标题、搜索、秒选按钮)
+  // 🌟 [重构点]：去掉了 bg-white/10 和 text-white。
+  // 使用 bg-background/80 配合 backdrop-blur-md，白天是白底毛玻璃，黑夜是黑底毛玻璃！
+  glassPanel:
+    'p-6 border shadow-2xl bg-background/80 backdrop-blur-md border-border rounded-xl text-foreground',
+
+  // 2. 顶部控制栏
   headerArea: 'flex flex-col items-center justify-between gap-4 mb-6 md:flex-row',
   pageTitle:
     'text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400',
   controlsWrapper: 'flex flex-col w-full gap-4 sm:flex-row md:w-auto',
 
-  // 3. 搜索框组件
-  searchContainer: 'relative group',
-  searchIconWrapper: 'absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none',
-  searchIcon: 'w-5 h-5 text-gray-400',
-  searchInput:
-    'w-full py-2 pl-10 pr-4 text-white placeholder-gray-400 transition-all border rounded-lg sm:w-64 bg-black/30 border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50',
+  // 3. 搜索框组件 (外层容器留着，输入框本身的样式全删了，交给 shadcn 的 <Input>！)
+  searchContainer: 'relative group flex items-center',
+  // 🌟 [重构点]：text-gray-400 -> text-muted-foreground (标准的次级文本颜色)
+  searchIconWrapper:
+    'absolute left-3 flex items-center pointer-events-none text-muted-foreground z-10',
+  searchIcon: 'w-4 h-4',
+  // searchInput 已经被无情删去，我们直接用 shadcn 的组件！
 
-  // 4. 秒选控制按钮 (包含基础样式与两种状态)
+  // 4. 秒选控制按钮 (业务强相关色，保留红绿配色，因为开/关的红绿语意在白天黑夜都通用)
   autoPickBtnBase:
     'px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 min-w-[140px]',
   autoPickBtnActive:
-    'bg-green-500/20 text-green-300 border border-green-500/50 hover:bg-green-500/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]',
+    'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/50 hover:bg-green-500/30',
   autoPickBtnInactive:
-    'bg-red-500/20 text-red-300 border border-red-500/50 hover:bg-red-500/30 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]',
+    'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/50 hover:bg-red-500/30',
 
-  // 4.1 秒选按钮的呼吸灯指示器
   indicatorWrapper: 'relative flex w-3 h-3',
   indicatorPing:
     'absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping',
@@ -35,24 +39,26 @@ export const championSelectStyles = {
   championGrid:
     'grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar',
 
-  // 6. 英雄单独卡片 (包含基础框、选中高光、图片、文字遮罩)
+  // 6. 英雄单独卡片
   championCard:
     'relative transition-all duration-300 cursor-pointer group hover:scale-105 hover:z-10',
+
+  // 🌟 [重构点]：bg-black/40 换成 bg-muted，无图时的骨架屏底色白天黑夜自动适应。边框统一用 border-border
   avatarWrapperBase:
-    'aspect-square rounded-xl overflow-hidden border-2 border-white/5 bg-black/40 group-hover:border-blue-400/80 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all',
+    'aspect-square rounded-xl overflow-hidden border-2 border-transparent bg-muted group-hover:border-primary/80 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.4)] transition-all',
   avatarWrapperSelected:
-    '!border-yellow-400 !shadow-[0_0_20px_rgba(250,204,21,0.5)] ring-2 ring-yellow-400/30',
+    '!border-primary !shadow-[0_0_20px_hsl(var(--primary)/0.5)] ring-2 ring-primary/30',
   avatarImg: 'object-cover w-full h-full transition-transform duration-500 group-hover:scale-110',
 
-  // 6.1 英雄名称渐变遮罩层
+  // ⚠️ [破例点]：图片上的文字遮罩必须保留 black 和 white！
+  // 因为底图（英雄原画）永远是暗色的，如果你这里用 text-foreground，在白天模式下字会变成黑色，融入底图就看不清了。
   nameOverlay:
     'absolute inset-0 flex items-end justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 bg-gradient-to-t from-black/90 via-black/40 to-transparent rounded-xl',
   nameText: 'px-1 pb-2 text-xs font-bold text-white truncate drop-shadow-md',
 
-  // 6.2 选中状态的角标徽章
   pickBadge:
-    'absolute top-1 right-1 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg',
+    'absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg',
 
   // 7. 空数据状态
-  emptyStateWrapper: 'flex flex-col items-center justify-center py-12 text-gray-400'
+  emptyStateWrapper: 'flex flex-col items-center justify-center py-12 text-muted-foreground'
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { transRanked, useLcuStateStore, type RankInfo } from '../../store/lcuState'
+import type { RankInfo } from '../../store/type'
+import { useLcuStateStore, transRanked } from '../../store/lcuState'
 import { cardStyles } from './style'
 
 const lcuStateStore = useLcuStateStore()
@@ -103,10 +104,15 @@ const FlexLp = computed(() =>
       <div :class="cardStyles.infoSectionWrapper">
         <div v-if="lcuStateStore.summonerInfo" :class="cardStyles.profileCard">
           <div :class="cardStyles.profileHeader">
-            <img
-              :class="cardStyles.summonerFlexImgBox"
-              :src="`lcu-img://lol-game-data/assets/v1/profile-icons/${lcuStateStore.summonerInfo.profileIconId}.jpg`"
-            />
+            <div class="relative w-16 h-16">
+              <img
+                :class="cardStyles.summonerFlexImgBox"
+                :src="`lcu-img://lol-game-data/assets/v1/profile-icons/${lcuStateStore.summonerInfo.profileIconId}.jpg`"
+              />
+              <div :class="cardStyles.summonerLevel">
+                {{ lcuStateStore.summonerInfo.summonerLevel }}
+              </div>
+            </div>
             <div :class="cardStyles.summonerFlexContentBox">
               <div :class="cardStyles.summonerNameText">{{ summonerName }}{{ summonerTag }}</div>
               <div :class="cardStyles.syncStatusText">召唤师信息已同步</div>

@@ -2,6 +2,14 @@ import type { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import type { Credentials } from 'league-connect'
 import type { IReactionDisposer } from 'mobx'
 import type { ChampionSimple } from '../Lcu-state/type'
+import type {
+  ItemAsset,
+  ItemsDictionary,
+  SummonerSpellAsset,
+  SpellsDictionary,
+  PerkAsset,
+  PerksDictionary
+} from './type'
 
 import { reaction } from 'mobx'
 import { lcuState } from '../Lcu-state/state'
@@ -43,27 +51,138 @@ export class ChampAssetShard implements BaiYueKuiShard {
     pollUntil(
       async () => {
         const credential = cred
-        if (!credential) return true
-        const C_A_RES = await createHttp1Request(
-          {
-            method: 'GET',
-            url: '/lol-game-data/assets/v1/champion-summary.json'
-          },
-          credential
-        )
+        if (!credential) return true // 没有凭据说明彻底断开了，终止当前轮询
 
-        if (!C_A_RES.ok) return false
+        try {
+          const champPromise = createHttp1Request(
+            { method: 'GET', url: '/lol-game-data/assets/v1/champion-summary.json' },
+            credential
+          )
+          const itemsPromise = createHttp1Request(
+            { method: 'GET', url: '/lol-game-data/assets/v1/items.json' },
+            credential
+          )
+          const spellsPromise = createHttp1Request(
+            { method: 'GET', url: '/lol-game-data/assets/v1/summoner-spells.json' },
+            credential
+          )
+          const perksPromise = createHttp1Request(
+            { method: 'GET', url: '/lol-game-data/assets/v1/perks.json' },
+            credential
+          )
 
-        const C_A_DATA = C_A_RES.json() as ChampionSimple[]
+          const results = await Promise.allSettled([
+            champPromise,
+            itemsPromise,
+            spellsPromise,
+            perksPromise
+          ])
+          const [champResult, itemsResult, spellsResult, perksResult] = results
 
-        const can_pick_champ = C_A_DATA.filter((item) => {
-          return item.id != -1
-        })
-        // console.log(can_pick_champ)
-        lcuState.setChampionList(can_pick_champ)
-        lcuState.setChampionListLoad(true)
-        console.log(`成功加载${can_pick_champ.length}个英雄`)
-        return true
+          // 🔥 设立一票否决标志位：默认全部成功，只要有一个失败就变为 false
+          let isAllSuccess = true
+
+          // ==========================================
+          // 🎯 A. 英雄列表
+          // ==========================================
+          if (champResult.status === 'fulfilled' && champResult.value.ok) {
+            const C_A_DATA = (await champResult.value.json()) as ChampionSimple[]
+            const can_pick_champ = C_A_DATA.filter((item) => item.id != -1)
+            lcuState.setChampionList(can_pick_champ)
+            lcuState.setChampionListLoad(true)
+          } else {
+            console.warn(`❌ 英雄列表拉取失败`)
+            isAllSuccess = false
+          }
+
+          // ==========================================
+          // 🎯 B. 装备字典
+          // ==========================================
+          if (itemsResult.status === 'fulfilled' && itemsResult.value.ok) {
+            const rawItemArrayJson = (await itemsResult.value.json()) as ItemAsset[]
+            const toItemsDictionary = rawItemArrayJson.reduce((acc, currentItem) => {
+              acc[currentItem.id] = {
+                id: currentItem.id,
+                name: currentItem.name,
+                description: currentItem.description,
+                price: currentItem.price,
+                iconPath: currentItem.iconPath,
+                active: currentItem.active,
+                inStore: currentItem.inStore,
+                from: currentItem.from,
+                to: currentItem.to,
+                categories: currentItem.categories,
+                maxAmmo: currentItem.maxAmmo,
+                isEnchantment: currentItem.isEnchantment,
+                priceTotal: currentItem.priceTotal
+              }
+              return acc
+            }, {} as ItemsDictionary)
+            lcuState.setItemsDictionary(toItemsDictionary)
+          } else {
+            console.warn(`❌ 装备字典拉取失败`)
+            isAllSuccess = false
+          }
+
+          // ==========================================
+          // 🎯 C. 召唤师技能字典
+          // ==========================================
+          if (spellsResult.status === 'fulfilled' && spellsResult.value.ok) {
+            const rawSpellArrayJson = (await spellsResult.value.json()) as SummonerSpellAsset[]
+            const toSpellsDictionary = rawSpellArrayJson.reduce((acc, currentSpell) => {
+              acc[currentSpell.id] = {
+                id: currentSpell.id,
+                name: currentSpell.name,
+                description: currentSpell.description,
+                summonerLevel: currentSpell.summonerLevel,
+                cooldown: currentSpell.cooldown,
+                gameModes: currentSpell.gameModes,
+                iconPath: currentSpell.iconPath
+              }
+              return acc
+            }, {} as SpellsDictionary)
+            lcuState.setSpellsDictionary(toSpellsDictionary)
+          } else {
+            console.warn(`❌ 召唤师技能字典拉取失败`)
+            isAllSuccess = false
+          }
+
+          // ==========================================
+          // 🎯 D. 符文字典
+          // ==========================================
+          if (perksResult.status === 'fulfilled' && perksResult.value.ok) {
+            const rawPerkArrayJson = (await perksResult.value.json()) as PerkAsset[]
+            const toPerksDictionary = rawPerkArrayJson.reduce((acc, currentPerk) => {
+              acc[currentPerk.id] = {
+                id: currentPerk.id,
+                name: currentPerk.name,
+                shortDesc: currentPerk.shortDesc,
+                longDesc: currentPerk.longDesc,
+                iconPath: currentPerk.iconPath,
+                endOfGameStatDescs: currentPerk.endOfGameStatDescs
+              }
+              return acc
+            }, {} as PerksDictionary)
+            lcuState.setPerksDictionary(toPerksDictionary)
+          } else {
+            console.warn(`❌ 符文字典拉取失败`)
+            isAllSuccess = false
+          }
+
+          // ==========================================
+          // 🏆 终极裁决
+          // ==========================================
+          if (isAllSuccess) {
+            console.log(`[${SHARD_ID}] 🎉 所有核心静态资源字典拉取并装载完毕！`)
+          } else {
+            console.warn(`[${SHARD_ID}] ⚠️ 存在未成功拉取的资源，进入下一轮重试...`)
+          }
+
+          return isAllSuccess // 只有这四个全部完美通过，这里才会是 true
+        } catch (error) {
+          console.error(`[${SHARD_ID}] 资源并发拉取过程发生异常，准备重试`, error)
+          return false // Try块报错也会触发重试
+        }
       },
       {
         interval: 2000,

@@ -33,11 +33,11 @@ export class AutoPickShard implements BaiYueKuiShard {
 
   subscribeToSession(socket: LeagueWebSocket): void {
     const ws = socket
-
     if (!ws) {
       console.warn(`${this.id}没有建立起websocket`)
       return
     }
+
 
     ws!.subscribe('/lol-champ-select/v1/session', (data) => {
       if (!data || !data.actions) return
@@ -65,6 +65,8 @@ export class AutoPickShard implements BaiYueKuiShard {
       } else if (IhaveCurrentActionOrNot.completed) {
         console.log(`${IhaveCurrentActionOrNot.type}已是完成状态，正在退出逻辑`)
         return
+      } else if (IhaveCurrentActionOrNot) {
+        console.log('当前动作轮到用户，准备进行动作')
       }
 
       switch (IhaveCurrentActionOrNot.type) {
@@ -73,7 +75,7 @@ export class AutoPickShard implements BaiYueKuiShard {
           break
         case 'pick':
           console.log('正在进行pick阶段')
-          this.toPickChamp(IhaveCurrentActionOrNot.id)
+          this.toPickChamp(IhaveCurrentActionOrNot.id, lcuState.isAutoPickEnabled)
           break
         default:
           console.log('未知任务类型:', IhaveCurrentActionOrNot.type)
@@ -81,9 +83,9 @@ export class AutoPickShard implements BaiYueKuiShard {
     })
   }
 
-  toPickChamp(actionId: number): void {
+  toPickChamp(actionId: number, isAutoPick: boolean): void {
     const credential = lcuState.credential
-    if (credential) {
+    if (credential && isAutoPick) {
       void createHttp1Request(
         {
           method: 'PATCH',

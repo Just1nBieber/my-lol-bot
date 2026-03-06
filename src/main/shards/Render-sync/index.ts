@@ -6,7 +6,7 @@ import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
 import { autorun, toJS } from 'mobx'
 
-import type { LcuStateSnapshot } from '../Lcu-state/type'
+import type { LcuStateSnapshot, QueryMatchedIndex } from '../Lcu-state/type'
 
 // ⬇️ 定义 Action 的结构，避免在 ipcMain.on 里使用 implicit any
 interface LcuActionPayload {
@@ -50,6 +50,9 @@ export class RendererSyncShard implements BaiYueKuiShard {
           break
         case 'setIsAutoPickEnabled':
           lcuState.setIsAutoPickEnabled(action.payload)
+          break
+        case 'setQueryMatched':
+          lcuState.setQueryMatchedIndex(action.payload as QueryMatchedIndex)
           break
       }
     })

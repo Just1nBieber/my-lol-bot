@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useLcuStateStore } from '../../store/lcuState'
-// 记得引入刚刚抽离的样式对象
 import { championSelectStyles } from './style'
+
+// 🌟 引入 shadcn 的标准零件
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { getIconUrl } from '../../lib/getImg'
 
 const lcuStateStore = useLcuStateStore()
 const searchQuery = ref('')
@@ -15,12 +20,7 @@ const filteredChampions = computed(() => {
   )
 })
 
-const getIconUrl = (path: string): string => {
-  if (path.startsWith('/')) {
-    return `lcu-img:/${path}`
-  }
-  return `lcu-img://${path}`
-}
+
 
 const toggleAutoPick = (): void => {
   lcuStateStore.setIsAutoPickEnabled(!lcuStateStore.isAutoPickEnabled)
@@ -28,13 +28,12 @@ const toggleAutoPick = (): void => {
 
 const selectChampion = (id: number): void => {
   lcuStateStore.setTargetChampionId(id)
-  console.log('哈哈')
 }
 </script>
 
 <template>
   <div :class="championSelectStyles.pageWrapper">
-    <div :class="championSelectStyles.glassPanel">
+    <Card :class="championSelectStyles.glassPanel">
       <div :class="championSelectStyles.headerArea">
         <h2 :class="championSelectStyles.pageTitle">Champion Select</h2>
 
@@ -55,16 +54,16 @@ const selectChampion = (id: number): void => {
                 />
               </svg>
             </div>
-            <input
+            <Input
               v-model="searchQuery"
-              type="text"
               placeholder="Search champion..."
-              :class="championSelectStyles.searchInput"
+              class="pl-9 w-full sm:w-64 bg-background/10 border-border"
             />
           </div>
 
-          <button
+          <Button
             @click="toggleAutoPick"
+            variant="outline"
             :class="[
               championSelectStyles.autoPickBtnBase,
               lcuStateStore.isAutoPickEnabled
@@ -85,7 +84,7 @@ const selectChampion = (id: number): void => {
               ></span>
             </span>
             {{ lcuStateStore.isAutoPickEnabled ? 'Auto Pick ON' : 'Auto Pick OFF' }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -109,14 +108,12 @@ const selectChampion = (id: number): void => {
               :src="getIconUrl(champ.squarePortraitPath)"
               :alt="champ.name"
               :class="championSelectStyles.avatarImg"
-              loading="eager"
+              loading="lazy"
             />
           </div>
-
           <div :class="championSelectStyles.nameOverlay">
             <span :class="championSelectStyles.nameText">{{ champ.name }}</span>
           </div>
-
           <div
             v-if="lcuStateStore.targetChampionObj.championId === champ.id"
             :class="championSelectStyles.pickBadge"
@@ -129,24 +126,23 @@ const selectChampion = (id: number): void => {
       <div v-if="filteredChampions.length === 0" :class="championSelectStyles.emptyStateWrapper">
         <p>No champions found.</p>
       </div>
-    </div>
+    </Card>
   </div>
 </template>
 
 <style scoped>
-/* Custom Scrollbar for the grid */
+/* 滚动条稍微适配一下双端模式的颜色 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: hsl(var(--border)); /* 使用变量！ */
   border-radius: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: hsl(var(--muted-foreground));
 }
 </style>

@@ -4,6 +4,7 @@ import type { Credentials } from 'league-connect'
 import { protocol, net } from 'electron'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
+import { buildLcuUrl, generateLcuAuth } from '@main/utils/generLcuAuth'
 
 /**
  * 图片代理协议的配置项。
@@ -37,12 +38,13 @@ export const registerImgProtocol = (opts: ImgProtocolOptions): (() => void) => {
     }
 
     const fullPath = urlObj.hostname + urlObj.pathname + urlObj.search
-    const lcuUrl = `https://127.0.0.1:${creds.port}/${fullPath}`
-    const auth = Buffer.from(`riot:${creds.password}`, 'utf-8').toString('base64')
+    const lcuUrl = buildLcuUrl(creds.port, fullPath)
+
+    const auth = generateLcuAuth(creds.password)
 
     try {
       const response = await net.fetch(lcuUrl, {
-        headers: { Authorization: `Basic ${auth}` },
+        headers: { Authorization: auth },
         bypassCustomProtocolHandlers: true
       })
       return response
