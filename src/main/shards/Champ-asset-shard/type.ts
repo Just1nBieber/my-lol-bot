@@ -36,9 +36,20 @@ export interface PerkAsset {
   endOfGameStatDescs?: string[] // 游戏结算时的统计维度说明（可选）
 }
 
+/**
+ * 符文系（主系/副系）资源项。
+ */
+export interface PerkStyleItem {
+  id: number
+  name: string
+  tooltip: string
+  iconPath: string
+}
+
 // 结合 TypeScript 的内置泛型 Record<KeyType, ValueType>
 // 定义以 ID 为 Key，以具体数据为 Value 的字典模型
 
 export type ItemsDictionary = Record<number, ItemAsset>
 export type SpellsDictionary = Record<number, SummonerSpellAsset>
 export type PerksDictionary = Record<number, PerkAsset>
+export type PerkStylesDictionary = Record<number, PerkStyleItem>

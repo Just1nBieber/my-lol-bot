@@ -90,3 +90,18 @@
 # 更新日志
 ## [v2.0.6] - 2026-03-07
 -**优化**： 完善了后端`ChampAssetShard`模块，增加了状态布尔值，用于记录该数据是否已被加载，防止了数据被再次拉取消耗性能。
+-**优新增**： 完善了后端`ChampAssetShard`模块，增加了经典模式下符文的主系(如：精密)，副系（如：启迪）的静态数据拉取。
+-**优化**- `System-protocol-shard`模块，增加了对`postman`暴露credential的接口地址，方便调试
+
+# 更新日志
+# [v2.0.7] - 2026-03-08
+
+## ✨ Feature (新增特性)
+- **符文树大类资源集成**: 在 Champ-asset-shard 的并发拉取队列中新增 `perkstyles.json` 静态数据拉取，彻底补全了符文主系（Primary Style）与副系（Sub Style）的大图标资源。
+
+- **全链路状态闭环**: 将新拉取的符文树字典接入主进程 `LcuState` 的持久化白名单，并打通前后端（Node.js → Vue）的响应式状态同步，确保 UI 渲染与内存数据绝对一致。
+
+## 🛠️ Refactor (底层重构)
+- **战绩数据清洗管道升级**: 重构 `SimpleMatched` 的战绩映射逻辑，将 LCU 原始返回中冗余、杂乱的扁平化符文字段（如 `perk0`、`perkSubStyle` 等）在底层优雅组装为结构化的 `runes` 对象。
+
+- **类型推导严谨化**: 同步更新 `SimpleMatchDTO` 及相关 TS 接口定义，持续贯彻 Zero Any 规范，保障了前端调用 `runes` 对象时的绝对类型安全。

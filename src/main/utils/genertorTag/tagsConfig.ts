@@ -93,7 +93,7 @@ export const TagRules: TagRule[] = [
     getText: () => '补刀机器',
     style: 'bg-cyan-100 text-cyan-600 border-cyan-200',
     priority: 70,
-    check: (p, teamMax, match) => {
+    check: (p, _teamMax, match) => {
       if (match.gameMode !== 'CLASSIC') return false; // 只有经典模式发补刀标签
       const minutes = match.gameDuration / 60;
       const totalCs = p.stats.totalMinionsKilled + p.stats.neutralMinionsKilled;

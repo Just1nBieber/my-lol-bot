@@ -231,10 +231,10 @@ export interface SimpleMatchDTO {
   // === 基础对局信息 ===
   /** 对局唯一 ID */
   gameId: number
-  /** 开局时间 (13位时间戳) */
-  gameCreation: number
-  /** 对局时长 (秒) */
-  gameDuration: number
+  /** 开局时间（已格式化文本） */
+  gameCreation: string
+  /** 对局时长（已格式化文本） */
+  gameDuration: string
   /** 游戏模式（已翻译文本） */
   gameMode: string
   /** 地图名称（已翻译文本） */
@@ -258,12 +258,14 @@ export interface SimpleMatchDTO {
   spells: number[]
 
   // === 符文与海克斯 ===
-  /** 主系基石符文 ID (最大的那个天赋图标) */
-  perkKeystone: number
-  /** 主系路径 ID (如: 8000 精密系) */
-  perkPrimaryStyle: number
-  /** 副系路径 ID (如: 8300 启迪系) */
-  perkSubStyle: number
+  runes: {
+    primaryStyle: number
+    subStyle: number
+    perks: Array<{
+      id: number
+      vars: number[]
+    }>
+  }
   /** 斗魂竞技场专属：海克斯强化数组。非斗魂模式下为空数组 [] */
   augments: number[]
 

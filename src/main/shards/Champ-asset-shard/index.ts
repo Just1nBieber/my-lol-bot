@@ -8,7 +8,9 @@ import type {
   SummonerSpellAsset,
   SpellsDictionary,
   PerkAsset,
-  PerksDictionary
+  PerksDictionary,
+  PerkStyleItem, // 🔥 新增：记得在 type.ts 里导出它
+  PerkStylesDictionary // 🔥 新增：记得在 type.ts 里导出它
 } from './type'
 
 import { reaction } from 'mobx'
@@ -25,12 +27,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
   static id = SHARD_ID
   private _cleanupFns: IReactionDisposer[] = []
 
-  // 🔥 新增：记录四个资源的持久化存储状态
+  // 🔥 新增：记录五个资源的持久化存储状态 (加入 perkStyles)
   private _storageStatus = {
     champ: false,
     items: false,
     spells: false,
-    perks: false
+    perks: false,
+    perkStyles: false // 🎯 新增符文系状态
   }
 
   onInit(): void {
@@ -51,7 +54,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
     console.log(`[${SHARD_ID}] LCU 连接断开，重置加载状态`)
     this._cleanupFns.forEach((d) => d())
     // 彻底断开时，重置缓存状态，确保下次启动游戏重新拉取最新资源
-    this._storageStatus = { champ: false, items: false, spells: false, perks: false }
+    this._storageStatus = {
+      champ: false,
+      items: false,
+      spells: false,
+      perks: false,
+      perkStyles: false
+    }
   }
 
   async fetchChampionAsset(cred: Credentials): Promise<void> {
@@ -93,13 +102,22 @@ export class ChampAssetShard implements BaiYueKuiShard {
                 credential
               )
 
+          // 🎯 新增并发请求：符文树/主副系
+          const perkStylesPromise = this._storageStatus.perkStyles
+            ? Promise.resolve(null)
+            : createHttp1Request(
+                { method: 'GET', url: '/lol-game-data/assets/v1/perkstyles.json' },
+                credential
+              )
+
           const results = await Promise.allSettled([
             champPromise,
             itemsPromise,
             spellsPromise,
-            perksPromise
+            perksPromise,
+            perkStylesPromise // 加入并发队列
           ])
-          const [champResult, itemsResult, spellsResult, perksResult] = results
+          const [champResult, itemsResult, spellsResult, perksResult, perkStylesResult] = results
 
           let isAllSuccess = true
 
@@ -113,7 +131,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
             champResult.value &&
             champResult.value.ok
           ) {
-            const C_A_DATA = (await champResult.value.json()) as ChampionSimple[]
+            const C_A_DATA = champResult.value.json() as ChampionSimple[]
             const can_pick_champ = C_A_DATA.filter((item) => item.id != -1)
             lcuState.setChampionList(can_pick_champ)
             lcuState.setChampionListLoad(true)
@@ -133,7 +151,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
             itemsResult.value &&
             itemsResult.value.ok
           ) {
-            const rawItemArrayJson = (await itemsResult.value.json()) as ItemAsset[]
+            const rawItemArrayJson = itemsResult.value.json() as ItemAsset[]
             const toItemsDictionary = rawItemArrayJson.reduce((acc, currentItem) => {
               acc[currentItem.id] = {
                 id: currentItem.id,
@@ -169,7 +187,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
             spellsResult.value &&
             spellsResult.value.ok
           ) {
-            const rawSpellArrayJson = (await spellsResult.value.json()) as SummonerSpellAsset[]
+            const rawSpellArrayJson = spellsResult.value.json() as SummonerSpellAsset[]
             const toSpellsDictionary = rawSpellArrayJson.reduce((acc, currentSpell) => {
               acc[currentSpell.id] = {
                 id: currentSpell.id,
@@ -190,7 +208,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
           }
 
           // ==========================================
-          // 🎯 D. 符文字典
+          // 🎯 D. 符文字典 (具体小符文)
           // ==========================================
           if (this._storageStatus.perks) {
             // 已缓存，跳过处理
@@ -199,7 +217,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
             perksResult.value &&
             perksResult.value.ok
           ) {
-            const rawPerkArrayJson = (await perksResult.value.json()) as PerkAsset[]
+            const rawPerkArrayJson = perksResult.value.json() as PerkAsset[]
             const toPerksDictionary = rawPerkArrayJson.reduce((acc, currentPerk) => {
               acc[currentPerk.id] = {
                 id: currentPerk.id,
@@ -219,10 +237,38 @@ export class ChampAssetShard implements BaiYueKuiShard {
           }
 
           // ==========================================
+          // 🎯 E. 符文系字典 (主系/副系大类)
+          // ==========================================
+          if (this._storageStatus.perkStyles) {
+            // 已缓存，跳过处理
+          } else if (
+            perkStylesResult.status === 'fulfilled' &&
+            perkStylesResult.value &&
+            perkStylesResult.value.ok
+          ) {
+            const rawPerkStylesArrayJson = perkStylesResult.value.json() as PerkStyleItem[]
+            const toPerkStylesDictionary = rawPerkStylesArrayJson.reduce((acc, currentStyle) => {
+              acc[currentStyle.id] = {
+                id: currentStyle.id,
+                name: currentStyle.name,
+                tooltip: currentStyle.tooltip,
+                // 必须转小写，配合 lcu-img 协议无缝渲染
+                iconPath: currentStyle.iconPath.toLowerCase()
+              }
+              return acc
+            }, {} as PerkStylesDictionary)
+            lcuState.setPerkStylesDictionary(toPerkStylesDictionary)
+            this._storageStatus.perkStyles = true // 标记成功
+          } else {
+            console.warn(`❌ 符文系字典拉取失败`)
+            isAllSuccess = false
+          }
+
+          // ==========================================
           // 🏆 终极裁决
           // ==========================================
           if (isAllSuccess) {
-            console.log(`[${SHARD_ID}] 🎉 所有核心静态资源字典拉取并装载完毕！`)
+            console.log(`[${SHARD_ID}] 🎉 所有核心静态资源字典 (含符文主副系) 拉取并装载完毕！`)
           } else {
             console.warn(`[${SHARD_ID}] ⚠️ 存在未成功拉取的资源，进入下一轮重试...`)
           }

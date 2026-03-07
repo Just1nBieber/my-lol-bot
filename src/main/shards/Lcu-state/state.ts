@@ -7,7 +7,12 @@ import type {
   SummonerInfo,
   QueryMatchedIndex
 } from './type'
-import type { ItemsDictionary, SpellsDictionary, PerksDictionary } from '../Champ-asset-shard/type'
+import type {
+  ItemsDictionary,
+  SpellsDictionary,
+  PerksDictionary,
+  PerkStylesDictionary
+} from '../Champ-asset-shard/type'
 import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
 
 import { makeAutoObservable, observable } from 'mobx'
@@ -31,11 +36,12 @@ const getDefaultState = () => ({
   arenaAugments: {} as Record<number, ArenaAugmentDictItem>,
   queryMatchedIndex: {
     begIndex: 0,
-    endIndex: 19
+    endIndex: 800
   } as QueryMatchedIndex,
   itemsDictionary: {} as ItemsDictionary,
   spellsDictionary: {} as SpellsDictionary,
-  perksDictionary: {} as PerksDictionary
+  perksDictionary: {} as PerksDictionary,
+  perkStylesDictionary: {} as PerkStylesDictionary
 })
 
 class LcuState {
@@ -55,6 +61,7 @@ class LcuState {
   itemsDictionary = getDefaultState().itemsDictionary
   spellsDictionary = getDefaultState().spellsDictionary
   perksDictionary = getDefaultState().perksDictionary
+  perkStylesDictionary = getDefaultState().perkStylesDictionary
 
   constructor() {
     makeAutoObservable(this, {
@@ -142,6 +149,15 @@ class LcuState {
 
   setPerksDictionary(perks: PerksDictionary): void {
     this.perksDictionary = perks
+  }
+
+  /**
+   * 写入符文系（主系/副系）字典。
+   *
+   * @param perkStyles - 符文系字典（例如：{ 8000: { id: 8000, name: '精密', tooltip: '...', iconPath: '/lol-game-data/assets/...' } }）
+   */
+  setPerkStylesDictionary(perkStyles: PerkStylesDictionary): void {
+    this.perkStylesDictionary = perkStyles
   }
 
   resetState(): void {

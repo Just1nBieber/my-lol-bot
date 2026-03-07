@@ -1,5 +1,10 @@
-import { SimpleMatchDTO } from "@main/shards/Simple-matched-shard/type"
-import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
+import type { SimpleMatchDTO } from '@main/shards/Simple-matched-shard/type.js'
+
+export interface ArenaAugmentDictItem {
+  name: string
+  desc: string
+  iconPath: string
+}
 
 /**
  * 召唤师段位信息（单队列）。
@@ -58,6 +63,7 @@ export interface LcuStateSnapshot {
   itemsDictionary: ItemsDictionary
   spellsDictionary: SpellsDictionary
   perksDictionary: PerksDictionary
+  perkStylesDictionary: PerkStylesDictionary
 }
 
 
@@ -105,3 +111,12 @@ export interface PerkAsset {
 export type ItemsDictionary = Record<number, ItemAsset>
 export type SpellsDictionary = Record<number, SummonerSpellAsset>
 export type PerksDictionary = Record<number, PerkAsset>
+
+export interface PerkStyleItem {
+  id: number
+  name: string
+  tooltip: string
+  iconPath: string
+}
+
+export type PerkStylesDictionary = Record<number, PerkStyleItem>

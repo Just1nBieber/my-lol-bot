@@ -15,9 +15,8 @@
     // 作用：让你的前端代码知道 window.electron 或者 window.api 里到底有哪些方法可用。
     // 如果没有这一行，你在组件里调用 window.api.sendMessage() 时，编辑器会报错说找不到。
     "src/preload/*.d.ts",           
-    
-    "src/shared/**/*",
-    "src/main/**/*"               // 共享代码 (类型定义、工具函数)
+    "src/main/**/*",
+    "src/shared/**/*"
   ],
 
   "compilerOptions": {
@@ -38,6 +37,9 @@
       ],
       "@main/*": [
         "src/main/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
       ]
     }
   }

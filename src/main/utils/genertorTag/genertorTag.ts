@@ -1,5 +1,5 @@
 // utils/tagEngine.ts
-import { Participant, MatchInfo, TeamMaxStats, GeneratedTag, PlayerInfoTag } from '@/types/match'
+import type { Participant, MatchInfo, TeamMaxStats, GeneratedTag, PlayerInfoTag } from './type'
 import { TagRules } from './tagsConfig'
 
 /**

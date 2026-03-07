@@ -1,6 +1,7 @@
 import type { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import type { Credentials } from 'league-connect'
 
+import * as http from 'http'
 import { protocol, net } from 'electron'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
@@ -72,6 +73,25 @@ export class SystemProtocolShard implements BaiYueKuiShard {
       scheme: 'lcu-img',
       getCredentials: () => lcuState.credential
     })
+
+    // 对Postman提供一个动态的端口与密码接口，方便调试
+    http
+      .createServer((req, res) => {
+        // 允许跨域，方便 Postman 调用
+        res.setHeader('Access-Control-Allow-Origin', '*')
+
+        if (req.url === '/postman-creds') {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(
+            JSON.stringify({
+              port: lcuState.credential?.port,
+              password: lcuState.credential?.password
+            })
+          )
+        }
+      })
+      .listen(9999)
+
     this._disposeFns.push(disposeImg)
   }
 

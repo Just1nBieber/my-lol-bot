@@ -44,7 +44,7 @@ async function getCurrentGameVersion(): Promise<string> {
       return 'unknown'
     }
 
-    const versionInfo = createHttp1Request(
+    const versionInfo = await createHttp1Request(
       {
         method: 'GET',
         url: '/lol-patch/v1/game-version'

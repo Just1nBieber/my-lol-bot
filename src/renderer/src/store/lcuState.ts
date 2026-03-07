@@ -9,11 +9,12 @@ import type {
   LcuStateSnapshot,
   ItemsDictionary,
   SpellsDictionary,
-  PerksDictionary
+  PerksDictionary,
+  PerkStylesDictionary
 } from './type'
 
 import type { SimpleMatchDTO } from '@main/shards/Simple-matched-shard/type.ts'
-import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
+import type { ArenaAugmentDictItem } from './type'
 
 /**
  * 段位映射字典。
@@ -34,8 +35,8 @@ export const transRanked: Record<string, string> = {
 export const initialSimpleMatch: SimpleMatchDTO = {
   // === 基础对局信息 ===
   gameId: 0,
-  gameCreation: 0,
-  gameDuration: 0,
+  gameCreation: '',
+  gameDuration: '',
   gameMode: '',
   map: '',
   queueId: 0,
@@ -50,9 +51,18 @@ export const initialSimpleMatch: SimpleMatchDTO = {
   spells: [0, 0], // 固定长度为 2
 
   // === 符文与海克斯 ===
-  perkKeystone: 0,
-  perkPrimaryStyle: 0,
-  perkSubStyle: 0,
+  runes: {
+    primaryStyle: 0,
+    subStyle: 0,
+    perks: [
+      { id: 0, vars: [0, 0, 0] },
+      { id: 0, vars: [0, 0, 0] },
+      { id: 0, vars: [0, 0, 0] },
+      { id: 0, vars: [0, 0, 0] },
+      { id: 0, vars: [0, 0, 0] },
+      { id: 0, vars: [0, 0, 0] }
+    ]
+  },
   augments: [], // 非斗魂模式为空数组
 
   // === 核心战斗数据 ===
@@ -88,6 +98,7 @@ export const useLcuStateStore = defineStore('lcuState', () => {
   const itemsDictionary = reactive<ItemsDictionary>({})
   const spellsDictionary = reactive<SpellsDictionary>({})
   const perksDictionary = reactive<PerksDictionary>({})
+  const perkStylesDictionary = reactive<PerkStylesDictionary>({})
 
   // 更新状态
   const updateState = (newState: Partial<LcuStateSnapshot>) => {
@@ -108,6 +119,8 @@ export const useLcuStateStore = defineStore('lcuState', () => {
       Object.assign(spellsDictionary, newState.spellsDictionary)
     if (newState.perksDictionary !== undefined)
       Object.assign(perksDictionary, newState.perksDictionary)
+    if (newState.perkStylesDictionary !== undefined)
+      Object.assign(perkStylesDictionary, newState.perkStylesDictionary)
   }
 
   // 初始化
@@ -170,6 +183,7 @@ export const useLcuStateStore = defineStore('lcuState', () => {
     itemsDictionary,
     spellsDictionary,
     perksDictionary,
+    perkStylesDictionary,
     setTargetChampionId,
     setIsAutoPickEnabled,
     setQueryMatchedIndex

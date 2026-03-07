@@ -115,16 +115,43 @@ export class SimpleMatched implements BaiYueKuiShard {
               spells: [myParticipantObj.spell1Id, myParticipantObj.spell2Id],
 
               // === 符文与海克斯 (Perks & Augments) ===
-              perkKeystone: myStats.perk0,
-              perkPrimaryStyle: myStats.perkPrimaryStyle,
-              perkSubStyle: myStats.perkSubStyle,
+              runes: {
+                primaryStyle: myStats.perkPrimaryStyle,
+                subStyle: myStats.perkSubStyle,
+                perks: [
+                  {
+                    id: myStats.perk0,
+                    vars: [myStats.perk0Var1, myStats.perk0Var2, myStats.perk0Var3]
+                  },
+                  {
+                    id: myStats.perk1,
+                    vars: [myStats.perk1Var1, myStats.perk1Var2, myStats.perk1Var3]
+                  },
+                  {
+                    id: myStats.perk2,
+                    vars: [myStats.perk2Var1, myStats.perk2Var2, myStats.perk2Var3]
+                  },
+                  {
+                    id: myStats.perk3,
+                    vars: [myStats.perk3Var1, myStats.perk3Var2, myStats.perk3Var3]
+                  },
+                  {
+                    id: myStats.perk4,
+                    vars: [myStats.perk4Var1, myStats.perk4Var2, myStats.perk4Var3]
+                  },
+                  {
+                    id: myStats.perk5,
+                    vars: [myStats.perk5Var1, myStats.perk5Var2, myStats.perk5Var3]
+                  }
+                ]
+              },
               augments: [
                 myStats.playerAugment1,
-                myStats.playerAugment2,
-                myStats.playerAugment3,
-                myStats.playerAugment4,
-                myStats.playerAugment5,
-                myStats.playerAugment6
+                myStats.playerAugment2 || 0,
+                myStats.playerAugment3 || 0,
+                myStats.playerAugment4 || 0,
+                myStats.playerAugment5 || 0,
+                myStats.playerAugment6 || 0
               ].filter((id) => id !== 0),
 
               // === 核心战斗数据 ===

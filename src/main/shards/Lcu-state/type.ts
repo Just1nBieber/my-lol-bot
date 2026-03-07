@@ -1,6 +1,7 @@
 import { LeagueWebSocket, Credentials } from 'league-connect'
 import type { SimpleMatchDTO } from '@main/shards/Simple-matched-shard/type.ts'
 import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
+import type { ItemsDictionary, SpellsDictionary, PerksDictionary, PerkStylesDictionary } from '../Champ-asset-shard/type'
 // 🎯 核心知识点：LCU 的 Action 结构
 export interface LcuAction {
   id: number // 动作ID (我们发请求就需要这个！)
@@ -119,6 +120,14 @@ export interface LcuStateSnapshot {
   arenaAugments: Record<number, ArenaAugmentDictItem>
 
   queryMatchedIndex: QueryMatchedIndex
+
+  itemsDictionary: ItemsDictionary
+
+  spellsDictionary: SpellsDictionary
+
+  perksDictionary: PerksDictionary
+
+  perkStylesDictionary: PerkStylesDictionary
 
   /** 基础数据是否已经加载完毕 */
   isLoaded: boolean
