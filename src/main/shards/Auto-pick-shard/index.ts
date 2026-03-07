@@ -42,6 +42,7 @@ export class AutoPickShard implements BaiYueKuiShard {
     ws!.subscribe('/lol-champ-select/v1/session', (data) => {
       if (!data || !data.actions) return
       const { localPlayerCellId, actions } = data as LcuSessionData
+      // 1. 拍平Lcu返回的动作数组，方便后续查询
       const flatArray = actions.flat()
 
       const allMyActions = flatArray.filter((item) => item.actorCellId === localPlayerCellId)
@@ -56,7 +57,7 @@ export class AutoPickShard implements BaiYueKuiShard {
       )
 
       const IhaveCurrentActionOrNot = flatArray.find(
-        (item) => item.actorCellId === localPlayerCellId && item.isInProgress === true
+        (item) => item.actorCellId === localPlayerCellId && item.isInProgress
       )
 
       if (!IhaveCurrentActionOrNot) {
@@ -74,7 +75,7 @@ export class AutoPickShard implements BaiYueKuiShard {
           console.log('正在进行ban阶段')
           break
         case 'pick':
-          console.log('正在进行pick阶段')
+          console.log('正在进行pick阶段, IhcAoN.id:', IhaveCurrentActionOrNot.id)
           this.toPickChamp(IhaveCurrentActionOrNot.id, lcuState.isAutoPickEnabled)
           break
         default:

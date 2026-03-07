@@ -85,3 +85,8 @@
 ### 🚀 Optimize (性能与数据优化)
 - **并发拉取提速**：重构 ChampAssetShard 模块，引入 Promise.allSettled 对 LCU 核心静态资源进行高并发一次性拉取，大幅缩短冷启动耗时。
 - **数据清洗管道**：建立 matched-translator.ts、kda.ts、cs-per-minute.ts 工具链，配合 Array.prototype.reduce 高效收敛并清洗原始冗余对局数据。
+
+
+# 更新日志
+## [v2.0.6] - 2026-03-07
+-**优化**： 完善了后端`ChampAssetShard`模块，增加了状态布尔值，用于记录该数据是否已被加载，防止了数据被再次拉取消耗性能。

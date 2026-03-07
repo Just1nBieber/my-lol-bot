@@ -18,7 +18,7 @@ class ShardManager {
       const shard = new Activator()
       console.log(`正在启动[白月魁🌙lol-helper]`)
       try {
-        await shard.onInit()
+        shard.onInit()
         this._shards.set(shard.id, shard)
         console.log(`${shard.id}已启动`)
       } catch (e) {
@@ -31,7 +31,7 @@ class ShardManager {
   async disposeAll(): Promise<void> {
     for (const [id, shard] of this._shards) {
       try {
-        await shard.onDispose()
+        shard.onDispose()
       } catch (e) {
         console.error(`${id} 销毁失败`, e)
       }

@@ -7,7 +7,7 @@ import { shardManager } from './manager'
  */
 
 export function Shard(id: string) {
-  return function (target: Function) {
+  return function (target: YueKuiShardCtor) {
     target.prototype.id = id
     console.log(`发现模块，正在注册${id}`)
     shardManager.Register(target as unknown as YueKuiShardCtor)

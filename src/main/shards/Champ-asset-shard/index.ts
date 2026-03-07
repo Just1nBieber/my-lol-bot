@@ -25,7 +25,15 @@ export class ChampAssetShard implements BaiYueKuiShard {
   static id = SHARD_ID
   private _cleanupFns: IReactionDisposer[] = []
 
-  async onInit(): Promise<void> {
+  // 🔥 新增：记录四个资源的持久化存储状态
+  private _storageStatus = {
+    champ: false,
+    items: false,
+    spells: false,
+    perks: false
+  }
+
+  onInit(): void {
     console.log('启动Champion资源模块')
     const disposeFunction = reaction(
       () => lcuState.credential,
@@ -42,6 +50,8 @@ export class ChampAssetShard implements BaiYueKuiShard {
   onDispose(): void {
     console.log(`[${SHARD_ID}] LCU 连接断开，重置加载状态`)
     this._cleanupFns.forEach((d) => d())
+    // 彻底断开时，重置缓存状态，确保下次启动游戏重新拉取最新资源
+    this._storageStatus = { champ: false, items: false, spells: false, perks: false }
   }
 
   async fetchChampionAsset(cred: Credentials): Promise<void> {
@@ -54,22 +64,34 @@ export class ChampAssetShard implements BaiYueKuiShard {
         if (!credential) return true // 没有凭据说明彻底断开了，终止当前轮询
 
         try {
-          const champPromise = createHttp1Request(
-            { method: 'GET', url: '/lol-game-data/assets/v1/champion-summary.json' },
-            credential
-          )
-          const itemsPromise = createHttp1Request(
-            { method: 'GET', url: '/lol-game-data/assets/v1/items.json' },
-            credential
-          )
-          const spellsPromise = createHttp1Request(
-            { method: 'GET', url: '/lol-game-data/assets/v1/summoner-spells.json' },
-            credential
-          )
-          const perksPromise = createHttp1Request(
-            { method: 'GET', url: '/lol-game-data/assets/v1/perks.json' },
-            credential
-          )
+          // 🔥 动态发车：如果已经存了，就直接发一个空的 Promise 占位，避免重复网络请求
+          const champPromise = this._storageStatus.champ
+            ? Promise.resolve(null)
+            : createHttp1Request(
+                { method: 'GET', url: '/lol-game-data/assets/v1/champion-summary.json' },
+                credential
+              )
+
+          const itemsPromise = this._storageStatus.items
+            ? Promise.resolve(null)
+            : createHttp1Request(
+                { method: 'GET', url: '/lol-game-data/assets/v1/items.json' },
+                credential
+              )
+
+          const spellsPromise = this._storageStatus.spells
+            ? Promise.resolve(null)
+            : createHttp1Request(
+                { method: 'GET', url: '/lol-game-data/assets/v1/summoner-spells.json' },
+                credential
+              )
+
+          const perksPromise = this._storageStatus.perks
+            ? Promise.resolve(null)
+            : createHttp1Request(
+                { method: 'GET', url: '/lol-game-data/assets/v1/perks.json' },
+                credential
+              )
 
           const results = await Promise.allSettled([
             champPromise,
@@ -79,17 +101,23 @@ export class ChampAssetShard implements BaiYueKuiShard {
           ])
           const [champResult, itemsResult, spellsResult, perksResult] = results
 
-          // 🔥 设立一票否决标志位：默认全部成功，只要有一个失败就变为 false
           let isAllSuccess = true
 
           // ==========================================
           // 🎯 A. 英雄列表
           // ==========================================
-          if (champResult.status === 'fulfilled' && champResult.value.ok) {
+          if (this._storageStatus.champ) {
+            // 已缓存，跳过处理
+          } else if (
+            champResult.status === 'fulfilled' &&
+            champResult.value &&
+            champResult.value.ok
+          ) {
             const C_A_DATA = (await champResult.value.json()) as ChampionSimple[]
             const can_pick_champ = C_A_DATA.filter((item) => item.id != -1)
             lcuState.setChampionList(can_pick_champ)
             lcuState.setChampionListLoad(true)
+            this._storageStatus.champ = true // 标记成功
           } else {
             console.warn(`❌ 英雄列表拉取失败`)
             isAllSuccess = false
@@ -98,7 +126,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
           // ==========================================
           // 🎯 B. 装备字典
           // ==========================================
-          if (itemsResult.status === 'fulfilled' && itemsResult.value.ok) {
+          if (this._storageStatus.items) {
+            // 已缓存，跳过处理
+          } else if (
+            itemsResult.status === 'fulfilled' &&
+            itemsResult.value &&
+            itemsResult.value.ok
+          ) {
             const rawItemArrayJson = (await itemsResult.value.json()) as ItemAsset[]
             const toItemsDictionary = rawItemArrayJson.reduce((acc, currentItem) => {
               acc[currentItem.id] = {
@@ -119,6 +153,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
               return acc
             }, {} as ItemsDictionary)
             lcuState.setItemsDictionary(toItemsDictionary)
+            this._storageStatus.items = true // 标记成功
           } else {
             console.warn(`❌ 装备字典拉取失败`)
             isAllSuccess = false
@@ -127,7 +162,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
           // ==========================================
           // 🎯 C. 召唤师技能字典
           // ==========================================
-          if (spellsResult.status === 'fulfilled' && spellsResult.value.ok) {
+          if (this._storageStatus.spells) {
+            // 已缓存，跳过处理
+          } else if (
+            spellsResult.status === 'fulfilled' &&
+            spellsResult.value &&
+            spellsResult.value.ok
+          ) {
             const rawSpellArrayJson = (await spellsResult.value.json()) as SummonerSpellAsset[]
             const toSpellsDictionary = rawSpellArrayJson.reduce((acc, currentSpell) => {
               acc[currentSpell.id] = {
@@ -142,6 +183,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
               return acc
             }, {} as SpellsDictionary)
             lcuState.setSpellsDictionary(toSpellsDictionary)
+            this._storageStatus.spells = true // 标记成功
           } else {
             console.warn(`❌ 召唤师技能字典拉取失败`)
             isAllSuccess = false
@@ -150,7 +192,13 @@ export class ChampAssetShard implements BaiYueKuiShard {
           // ==========================================
           // 🎯 D. 符文字典
           // ==========================================
-          if (perksResult.status === 'fulfilled' && perksResult.value.ok) {
+          if (this._storageStatus.perks) {
+            // 已缓存，跳过处理
+          } else if (
+            perksResult.status === 'fulfilled' &&
+            perksResult.value &&
+            perksResult.value.ok
+          ) {
             const rawPerkArrayJson = (await perksResult.value.json()) as PerkAsset[]
             const toPerksDictionary = rawPerkArrayJson.reduce((acc, currentPerk) => {
               acc[currentPerk.id] = {
@@ -164,6 +212,7 @@ export class ChampAssetShard implements BaiYueKuiShard {
               return acc
             }, {} as PerksDictionary)
             lcuState.setPerksDictionary(toPerksDictionary)
+            this._storageStatus.perks = true // 标记成功
           } else {
             console.warn(`❌ 符文字典拉取失败`)
             isAllSuccess = false
@@ -178,10 +227,10 @@ export class ChampAssetShard implements BaiYueKuiShard {
             console.warn(`[${SHARD_ID}] ⚠️ 存在未成功拉取的资源，进入下一轮重试...`)
           }
 
-          return isAllSuccess // 只有这四个全部完美通过，这里才会是 true
+          return isAllSuccess
         } catch (error) {
           console.error(`[${SHARD_ID}] 资源并发拉取过程发生异常，准备重试`, error)
-          return false // Try块报错也会触发重试
+          return false
         }
       },
       {

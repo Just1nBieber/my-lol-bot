@@ -35,7 +35,7 @@ export class RendererSyncShard implements BaiYueKuiShard {
     return cleanState
   }
 
-  async onInit(): Promise<void> {
+  onInit(): void {
     // ⬇️ 严格模式：事件对象类型化，数据标记为 unknown
     // ipcRenderer.send() ---> ipcMain.on(): void
     ipcMain.on('lcu-action', (_event: IpcMainEvent, _action: unknown) => {
