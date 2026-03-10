@@ -2,6 +2,7 @@ import type { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import type { Credentials } from 'league-connect'
 import type { IReactionDisposer } from 'mobx'
 import type { ChampionSimple } from '../Lcu-state/type'
+import type { ArenaAugmentDictItem } from '@main/utils/arenaCache'
 import type {
   ItemAsset,
   ItemsDictionary,
@@ -9,15 +10,16 @@ import type {
   SpellsDictionary,
   PerkAsset,
   PerksDictionary,
-  PerkStyleItem, // 🔥 新增：记得在 type.ts 里导出它
-  PerkStylesDictionary // 🔥 新增：记得在 type.ts 里导出它
+  PerkStyleItem,
+  PerkStylesDictionary
 } from './type'
 
-import { reaction } from 'mobx'
+import { reaction, toJS } from 'mobx'
 import { lcuState } from '../Lcu-state/state'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { createHttp1Request } from 'league-connect'
 import { pollUntil } from '../../utils/scheduler'
+import { saveMergedArenaToDisk } from '../../utils/arenaCache'
 
 const SHARD_ID = 'champ-asset'
 
@@ -33,7 +35,8 @@ export class ChampAssetShard implements BaiYueKuiShard {
     items: false,
     spells: false,
     perks: false,
-    perkStyles: false // 🎯 新增符文系状态
+    perkStyles: false,
+    cherry: false
   }
 
   onInit(): void {
@@ -59,7 +62,8 @@ export class ChampAssetShard implements BaiYueKuiShard {
       items: false,
       spells: false,
       perks: false,
-      perkStyles: false
+      perkStyles: false,
+      cherry: false
     }
   }
 
@@ -110,14 +114,30 @@ export class ChampAssetShard implements BaiYueKuiShard {
                 credential
               )
 
+          const cherryAugmentsPromise =
+            this._storageStatus.cherry || lcuState.isArenaFullyCached
+              ? Promise.resolve(null)
+              : createHttp1Request(
+                  { method: 'GET', url: '/lol-game-data/assets/v1/cherry-augments.json' },
+                  credential
+                )
+
           const results = await Promise.allSettled([
             champPromise,
             itemsPromise,
             spellsPromise,
             perksPromise,
-            perkStylesPromise // 加入并发队列
+            perkStylesPromise,
+            cherryAugmentsPromise
           ])
-          const [champResult, itemsResult, spellsResult, perksResult, perkStylesResult] = results
+          const [
+            champResult,
+            itemsResult,
+            spellsResult,
+            perksResult,
+            perkStylesResult,
+            cherryResult
+          ] = results
 
           let isAllSuccess = true
 
@@ -246,7 +266,14 @@ export class ChampAssetShard implements BaiYueKuiShard {
             perkStylesResult.value &&
             perkStylesResult.value.ok
           ) {
-            const rawPerkStylesArrayJson = perkStylesResult.value.json() as PerkStyleItem[]
+            // 1. 先用 unknown 接住未知的 JSON 结构
+            const responseData = (await perkStylesResult.value.json()) as
+              | { styles?: PerkStyleItem[] }
+              | PerkStyleItem[]
+            // 2. 极其安全的类型守卫脱壳：如果外面包了 styles 就扒掉，如果是纯数组就直接用
+            const rawPerkStylesArrayJson: PerkStyleItem[] = Array.isArray(responseData)
+              ? responseData
+              : responseData.styles || []
             const toPerkStylesDictionary = rawPerkStylesArrayJson.reduce((acc, currentStyle) => {
               acc[currentStyle.id] = {
                 id: currentStyle.id,
@@ -261,6 +288,46 @@ export class ChampAssetShard implements BaiYueKuiShard {
             this._storageStatus.perkStyles = true // 标记成功
           } else {
             console.warn(`❌ 符文系字典拉取失败`)
+            isAllSuccess = false
+          }
+
+          if (this._storageStatus.cherry) {
+          } else if (lcuState.isArenaFullyCached) {
+            this._storageStatus.cherry = true
+          } else if (
+            cherryResult.status === 'fulfilled' &&
+            cherryResult.value &&
+            cherryResult.value.ok
+          ) {
+            if (Object.keys(lcuState.arenaAugments).length === 0) {
+              console.warn('[Champ-asset] ⚠️ 基础海克斯字典尚未就绪，延迟缝合 cherry 数据...')
+              isAllSuccess = false // 返回 false 让轮询继续等
+            } else {
+              const responseData = cherryResult.value.json() as
+                | Array<{ id: number; rarity: string }>
+                | { augments?: Array<{ id: number; rarity: string }> }
+              const cherryAugments = Array.isArray(responseData)
+                ? responseData
+                : responseData.augments || []
+
+              const mergedDict: Record<number, ArenaAugmentDictItem> = { ...lcuState.arenaAugments }
+              // 注： ...lcS.aAug 是对象，浅拷贝是对它本身属性的指针复制 
+              for (const item of cherryAugments) {
+                const target = mergedDict[item.id] // mergedDict 
+                if (!target) continue
+                mergedDict[item.id] = {
+                  ...target,          // 如name: '战争交响乐'，这类基本类型，都有着一个物理性质：绝对不可变。一但在堆内存中开辟，就无法改变
+                  rarity: item.rarity
+                }
+              }
+              lcuState.setArenaAugments(mergedDict)
+              const pureDict = toJS(lcuState.arenaAugments)
+              await saveMergedArenaToDisk(pureDict, lcuState.gameVersion)
+              lcuState.setIsArenaFullyCached(true)
+              this._storageStatus.cherry = true
+            }
+          } else {
+            console.warn(`❌ cherry 海克斯稀有度拉取失败`)
             isAllSuccess = false
           }
 

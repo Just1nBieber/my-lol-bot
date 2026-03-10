@@ -146,3 +146,27 @@ export function translateGameResult(
   // 4. 正常推平基地的胜负
   return win ? '胜利' : '失败'
 }
+
+
+// 🛡️ 转换函数 (自带容错防雷)
+export const getRarity = (rarity?: string): string => {
+  // 核心防御：如果刚开机那零点几秒，后端还没把 rarity 缝合好，它就是 undefined
+  if (!rarity) return '加载中...' // 你也可以换成空字符串 '' 保持安静占位
+  // 返回对应的中文，如果拳头以后偷偷加了新级别，就兜底显示“未知”
+  return rarityTextMap[rarity] || '未知'
+}
+
+// 🎯 稀有度文字映射字典
+const rarityTextMap: Record<string, string> = {
+  kSilver: '白银',
+  kGold: '黄金',
+  kPrismatic: '棱彩'
+}
+
+// 🛡️ 转换函数：获取文字
+export const getRarityText = (rarity?: string): string => {
+  if (!rarity) return '加载中...'
+  return rarityTextMap[rarity] || '未知'
+}
+
+

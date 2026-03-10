@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
+import { shallowRef, markRaw, ref, reactive } from 'vue'
 // 💡 注意：请根据你的实际目录结构调整这里的引入路径
 import type {
   ChampionSimple,
@@ -45,7 +45,7 @@ export const initialSimpleMatch: SimpleMatchDTO = {
   endOfGameResult: '',
   // === 玩家身份 ===
   puuid: '',
-
+  win: true,
   // === 英雄与召唤师技能 ===
   championId: 0,
   spells: [0, 0], // 固定长度为 2
@@ -71,6 +71,7 @@ export const initialSimpleMatch: SimpleMatchDTO = {
   assists: 0,
   goldEarned: 0,
   cs: 0,
+  SimpleTotalDamageDealtToChampions: 0,
   kda: '0.00',
   csPerMinute: '0.0',
 
@@ -79,50 +80,63 @@ export const initialSimpleMatch: SimpleMatchDTO = {
 }
 
 export const useLcuStateStore = defineStore('lcuState', () => {
-  const championList = ref<ChampionSimple[]>([])
+  const championList = shallowRef<ChampionSimple[]>([])
   const isAutoPickEnabled = ref(false)
   const targetChampionObj = reactive<PickObj>({
     championId: 0,
     completed: false
   })
   const isLoaded = ref(false)
-  const summonerInfo = ref<SummonerInfo | null>(null)
+  const summonerInfo = shallowRef<SummonerInfo | null>(null)
   // 初始默认值
   // 在 Pinia 或 MobX 中使用
-  const simpleMatchedList = ref<SimpleMatchDTO[]>([])
-  const arenaAugments = ref<Record<number, ArenaAugmentDictItem>>({})
+  const simpleMatchedList = shallowRef<SimpleMatchDTO[]>([])
+  const arenaAugments = shallowRef<Record<number, ArenaAugmentDictItem>>({})
   const queryMatchedIndex = reactive<QueryMatchedIndex>({
     begIndex: 0,
     endIndex: 19
   })
-  const itemsDictionary = reactive<ItemsDictionary>({})
-  const spellsDictionary = reactive<SpellsDictionary>({})
-  const perksDictionary = reactive<PerksDictionary>({})
-  const perkStylesDictionary = reactive<PerkStylesDictionary>({})
+  const itemsDictionary = shallowRef<ItemsDictionary>({})
+  const spellsDictionary = shallowRef<SpellsDictionary>({})
+  const perksDictionary = shallowRef<PerksDictionary>({})
+  const perkStylesDictionary = shallowRef<PerkStylesDictionary>({})
 
   // 更新状态
   const updateState = (newState: Partial<LcuStateSnapshot>) => {
-    if (newState.championList) championList.value = newState.championList
-    if (newState.targetChampionObj) Object.assign(targetChampionObj, newState.targetChampionObj)
-    if (newState.isAutoPickEnabled !== undefined)
-      isAutoPickEnabled.value = newState.isAutoPickEnabled
-    if (newState.isLoaded !== undefined) isLoaded.value = newState.isLoaded
-    if (newState.summonerInfo !== undefined) summonerInfo.value = newState.summonerInfo
+    // 1. 庞大静态数据/快照列表：用 .value 整体替换 + markRaw 彻底物理隔绝深度劫持！
+    if (newState.championList) championList.value = markRaw(newState.championList)
+
     if (newState.simpleMatchedList !== undefined)
-      simpleMatchedList.value = newState.simpleMatchedList
-    if (newState.arenaAugments !== undefined) arenaAugments.value = newState.arenaAugments
+      simpleMatchedList.value = markRaw(newState.simpleMatchedList)
+
+    if (newState.arenaAugments !== undefined) arenaAugments.value = markRaw(newState.arenaAugments)
+
+    if (newState.itemsDictionary !== undefined)
+      itemsDictionary.value = markRaw(newState.itemsDictionary)
+
+    if (newState.spellsDictionary !== undefined)
+      spellsDictionary.value = markRaw(newState.spellsDictionary)
+
+    if (newState.perksDictionary !== undefined)
+      perksDictionary.value = markRaw(newState.perksDictionary)
+
+    if (newState.perkStylesDictionary !== undefined)
+      perkStylesDictionary.value = markRaw(newState.perkStylesDictionary)
+
+    // 2. 依然需要深度响应式的小型对象：保持原来的 Object.assign
+    if (newState.targetChampionObj) Object.assign(targetChampionObj, newState.targetChampionObj)
+
     if (newState.queryMatchedIndex !== undefined)
       Object.assign(queryMatchedIndex, newState.queryMatchedIndex)
-    if (newState.itemsDictionary !== undefined)
-      Object.assign(itemsDictionary, newState.itemsDictionary)
-    if (newState.spellsDictionary !== undefined)
-      Object.assign(spellsDictionary, newState.spellsDictionary)
-    if (newState.perksDictionary !== undefined)
-      Object.assign(perksDictionary, newState.perksDictionary)
-    if (newState.perkStylesDictionary !== undefined)
-      Object.assign(perkStylesDictionary, newState.perkStylesDictionary)
-  }
 
+    // 3. 基础类型（布尔、字符串）
+    if (newState.isAutoPickEnabled !== undefined)
+      isAutoPickEnabled.value = newState.isAutoPickEnabled
+
+    if (newState.isLoaded !== undefined) isLoaded.value = newState.isLoaded
+
+    if (newState.summonerInfo !== undefined) summonerInfo.value = newState.summonerInfo
+  }
   // 初始化
   const init = async () => {
     try {

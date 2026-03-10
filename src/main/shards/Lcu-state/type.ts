@@ -118,6 +118,8 @@ export interface LcuStateSnapshot {
 
   /** 斗魂竞技场海克斯字典 */
   arenaAugments: Record<number, ArenaAugmentDictItem>
+  isArenaFullyCached: boolean
+  gameVersion: string
 
   queryMatchedIndex: QueryMatchedIndex
 

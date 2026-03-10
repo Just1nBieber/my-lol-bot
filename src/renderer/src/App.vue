@@ -4,6 +4,7 @@ import ChampionGrid from './components/ChampionGrid/ChampionGrid.vue'
 import UserInfoCard from './components/user-info-card/UserInfoCard.vue'
 import OuterCpg from './components/OuterCpg/OuterCpg.vue'
 import Navbar from './components/NavBar/Navbar.vue'
+import MatchedCard from './components/MatchedCard/MatchedCard.vue'
 const showAutoPick = ref(false)
 </script>
 
@@ -14,6 +15,7 @@ const showAutoPick = ref(false)
     <Navbar @show="showAutoPick = true" />
     <!-- 用户信息卡片 -->
     <UserInfoCard />
+    <MatchedCard/>
     <!-- 自动选人模态框 -->
     <OuterCpg v-if="showAutoPick" @close="showAutoPick = false">
       <ChampionGrid />

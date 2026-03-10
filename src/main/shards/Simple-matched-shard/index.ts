@@ -18,7 +18,7 @@ import {
   translateGameMode,
   translateGameCreation,
   translateGameDuration
-} from '@main/utils/matched-translator'
+} from '@shared/utils/matched-translator'
 
 const SHARD_ID = 'simple-matched'
 
@@ -42,6 +42,7 @@ export class SimpleMatched implements BaiYueKuiShard {
   }
 
   onDispose(): void {
+    this._isDisposed = true
     this._cleanupFns.forEach((d) => d())
     this._cleanupFns = []
   }
@@ -99,7 +100,8 @@ export class SimpleMatched implements BaiYueKuiShard {
               endOfGameResult: currentItem.endOfGameResult,
               // === 玩家身份 ===
               puuid: myPlayerInfo.puuid,
-
+              // 胜负
+              win: myStats.win,
               // === 胜负 or 重开 or 投降 ===
               finalGameResult: String(
                 translateGameResult(
@@ -147,11 +149,11 @@ export class SimpleMatched implements BaiYueKuiShard {
               },
               augments: [
                 myStats.playerAugment1,
-                myStats.playerAugment2 || 0,
-                myStats.playerAugment3 || 0,
-                myStats.playerAugment4 || 0,
-                myStats.playerAugment5 || 0,
-                myStats.playerAugment6 || 0
+                myStats.playerAugment2 || -1,
+                myStats.playerAugment3 || -1,
+                myStats.playerAugment4 || -1,
+                myStats.playerAugment5 || -1,
+                myStats.playerAugment6 || -1
               ].filter((id) => id !== 0),
 
               // === 核心战斗数据 ===
@@ -160,6 +162,7 @@ export class SimpleMatched implements BaiYueKuiShard {
               assists: myStats.assists,
               goldEarned: myStats.goldEarned,
               cs: totalCS,
+              SimpleTotalDamageDealtToChampions: myStats.totalDamageDealtToChampions || 0,
               kda: getKdaRatio(myStats.kills, myStats.deaths, myStats.assists),
               csPerMinute: getCsPerMinute(totalCS, currentItem.gameDuration),
 
@@ -191,7 +194,5 @@ export class SimpleMatched implements BaiYueKuiShard {
         timeout: 60 * 2000
       }
     )
-
-    this._isDisposed = false
   }
 }

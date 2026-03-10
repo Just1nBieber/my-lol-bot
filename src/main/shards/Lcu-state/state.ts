@@ -34,9 +34,11 @@ const getDefaultState = () => ({
   summonerInfo: null as SummonerInfo | null,
   simpleMatchedList: [] as SimpleMatchDTO[],
   arenaAugments: {} as Record<number, ArenaAugmentDictItem>,
+  isArenaFullyCached: false,
+  gameVersion: 'unknown',
   queryMatchedIndex: {
     begIndex: 0,
-    endIndex: 800
+    endIndex: 100
   } as QueryMatchedIndex,
   itemsDictionary: {} as ItemsDictionary,
   spellsDictionary: {} as SpellsDictionary,
@@ -57,6 +59,8 @@ class LcuState {
   summonerInfo = getDefaultState().summonerInfo
   simpleMatchedList = getDefaultState().simpleMatchedList
   arenaAugments = getDefaultState().arenaAugments
+  isArenaFullyCached = getDefaultState().isArenaFullyCached
+  gameVersion = getDefaultState().gameVersion
   queryMatchedIndex = getDefaultState().queryMatchedIndex
   itemsDictionary = getDefaultState().itemsDictionary
   spellsDictionary = getDefaultState().spellsDictionary
@@ -125,6 +129,14 @@ class LcuState {
     this.arenaAugments = dict
   }
 
+  setIsArenaFullyCached(flag: boolean): void {
+    this.isArenaFullyCached = flag
+  }
+
+  setGameVersion(version: string): void {
+    this.gameVersion = version
+  }
+
   setQueryMatchedIndex(payload: QueryMatchedIndex): void {
     this.queryMatchedIndex = payload
   }
@@ -190,12 +202,14 @@ class LcuState {
     this.summonerInfo = defaultState.summonerInfo
     this.simpleMatchedList = defaultState.simpleMatchedList
     this.queryMatchedIndex = defaultState.queryMatchedIndex
-    // 4. 🛡️ 下面这四个静态字典，坚决不清空！让它们留在内存里！
+    // 4. 🛡️静态字典和静态数据，坚决不清空！让它们留在内存里
     // this.arenaAugments
     // this.itemsDictionary
     // this.spellsDictionary
     // this.perksDictionary
-
+    // this.perkStylesDictionary
+    // this.isArenaFullyCached
+    // this.gameVersion
     console.log(`✨ 动态状态已恢复出厂设置。
 🛡️ 静态字典资源 (海克斯/装备/技能等) 依然安全存活于内存中。`)
   }

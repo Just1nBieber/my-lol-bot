@@ -250,7 +250,8 @@ export interface SimpleMatchDTO {
   // === 玩家身份 ===
   /** 当前玩家的唯一标识符，用于在右侧多人详情中做身份比对高亮 */
   puuid: string
-
+  // 胜负布尔值 
+  win: boolean
   // === 英雄与召唤师技能 ===
   /** 英雄头像 ID */
   championId: number
@@ -284,7 +285,8 @@ export interface SimpleMatchDTO {
   kda: string
   /** 分均补兵（字符串，保留一位小数） */
   csPerMinute: string
-
+  // 当前召唤师对敌人的总伤害
+  SimpleTotalDamageDealtToChampions: number
   // === 装备 ===
   /** * 装备栏数组，固定长度为 8。
    * 前 7 格为常规装备与饰品眼，第 8 格为 S16 分路任务专属装备 (roleBoundItem)。

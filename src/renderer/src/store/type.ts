@@ -4,6 +4,7 @@ export interface ArenaAugmentDictItem {
   name: string
   desc: string
   iconPath: string
+  rarity?: string
 }
 
 /**
@@ -59,6 +60,8 @@ export interface LcuStateSnapshot {
   summonerInfo: SummonerInfo | null
   simpleMatchedList: SimpleMatchDTO[]
   arenaAugments: Record<number, ArenaAugmentDictItem>
+  isArenaFullyCached: boolean
+  gameVersion: string
   queryMatchedIndex: QueryMatchedIndex
   itemsDictionary: ItemsDictionary
   spellsDictionary: SpellsDictionary

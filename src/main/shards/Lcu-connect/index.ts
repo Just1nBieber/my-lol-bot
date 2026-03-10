@@ -54,8 +54,10 @@ export class LcuConnectShard implements BaiYueKuiShard {
         })
 
         console.log(`[${this.id}] WebSocket 连接成功，开始监听状态`)
-        const localHexJson = await initArenaAugmentsWithCache()
-        lcuState.setArenaAugments(localHexJson)
+        const { dict, isFullyCached, version } = await initArenaAugmentsWithCache()
+        lcuState.setArenaAugments(dict)
+        lcuState.setIsArenaFullyCached(isFullyCached)
+        lcuState.setGameVersion(version)
         // 5. 设置Promise管理this._isDispose
         await new Promise<void>((resolve) => {
           this._ws!.on('close', () => {
