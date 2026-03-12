@@ -124,7 +124,7 @@ const FlexLp = computed(() =>
               <img :class="cardStyles.rankIcon" :src="getRankImageUrl(soloPic)" alt="" />
               <div :class="cardStyles.rankInfoWrapper">
                 <div :class="cardStyles.rankTitle">单双排</div>
-                <div :class="cardStyles.rankStats">{{ soloRecord.win }}胜 | {{ SoloLp }}LP</div>
+                <div :class="cardStyles.rankStats">{{ soloRecord.win }}胜 · {{ SoloLp }}LP</div>
                 <div :class="cardStyles.rankName">
                   {{ soloRank }}
                 </div>
@@ -134,7 +134,7 @@ const FlexLp = computed(() =>
               <img :class="cardStyles.rankIcon" :src="getRankImageUrl(flexPic)" alt="" />
               <div :class="cardStyles.rankInfoWrapper">
                 <div :class="cardStyles.rankTitle">灵活组排</div>
-                <div :class="cardStyles.rankStats">{{ flexRecord.win }}胜 | {{ FlexLp }}LP</div>
+                <div :class="cardStyles.rankStats">{{ flexRecord.win }}胜 · {{ FlexLp }}LP</div>
                 <div :class="cardStyles.rankName">
                   {{ flexRank }}
                 </div>

@@ -97,11 +97,7 @@ const selectedWin = ref<'all' | 'win' | 'lose'>('all')
 
 const handleScroll = (e: Event) => {
   const target = e.target as HTMLElement
-  if (target.scrollTop > 10) {
-    isSticky.value = true
-  } else {
-    isSticky.value = false
-  }
+  isSticky.value = target.scrollTop > 10
 }
 
 const heroOptions = computed(() => {
@@ -157,101 +153,86 @@ const prevPage = () => {
 
 <template>
   <TooltipProvider :delay-duration="200">
-    <div
-      :class="simpleMatchStyle.wrapper"
-      class="h-full overflow-y-auto relative scroll-smooth"
-      @scroll="handleScroll"
-    >
+    <div :class="simpleMatchStyle.wrapper" @scroll="handleScroll">
       <div
-        class="sticky top-0 z-40 w-full transition-all duration-300"
         :class="[
-          isSticky
-            ? 'py-2 px-3 shadow-lg backdrop-blur-md bg-white/90 dark:bg-slate-950/90 border-b border-slate-200 dark:border-slate-800'
-            : 'py-4 px-1 bg-transparent'
+          simpleMatchStyle.stickyHeaderBase,
+          isSticky ? simpleMatchStyle.stickyHeaderActive : simpleMatchStyle.stickyHeaderInactive
         ]"
       >
-        <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <select
-              v-model="selectedHero"
-              class="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
+        <div :class="simpleMatchStyle.headerLayout">
+          <div :class="simpleMatchStyle.filterGroup">
+            <select v-model="selectedHero" :class="simpleMatchStyle.selectBase">
               <option value="all">全部英雄</option>
               <option v-for="h in heroOptions" :key="h.id" :value="h.id">{{ h.name }}</option>
             </select>
 
-            <select
-              v-model="selectedMode"
-              class="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
+            <select v-model="selectedMode" :class="simpleMatchStyle.selectBase">
               <option value="all">全部模式</option>
               <option value="CLASSIC">经典模式</option>
               <option value="ARAM">极地大乱斗</option>
               <option value="CHERRY">斗魂竞技场</option>
             </select>
 
-            <div class="flex items-center bg-muted rounded-md p-1 h-8">
+            <div :class="simpleMatchStyle.toggleGroup">
               <button
-                @click="selectedWin = 'all'"
-                class="px-3 py-0.5 text-xs rounded-sm transition-all"
-                :class="
+                :class="[
+                  simpleMatchStyle.toggleBtnBase,
                   selectedWin === 'all'
-                    ? 'bg-background shadow-sm text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground'
-                "
+                    ? simpleMatchStyle.toggleBtnActiveAll
+                    : simpleMatchStyle.toggleBtnInactive
+                ]"
+                @click="selectedWin = 'all'"
               >
                 全部
               </button>
               <button
-                @click="selectedWin = 'win'"
-                class="px-3 py-0.5 text-xs rounded-sm transition-all"
-                :class="
+                :class="[
+                  simpleMatchStyle.toggleBtnBase,
                   selectedWin === 'win'
-                    ? 'bg-emerald-500/10 text-emerald-600 font-medium'
-                    : 'text-muted-foreground hover:text-emerald-600'
-                "
+                    ? simpleMatchStyle.toggleBtnActiveWin
+                    : simpleMatchStyle.toggleBtnInactiveWin
+                ]"
+                @click="selectedWin = 'win'"
               >
                 胜利
               </button>
               <button
-                @click="selectedWin = 'lose'"
-                class="px-3 py-0.5 text-xs rounded-sm transition-all"
-                :class="
+                :class="[
+                  simpleMatchStyle.toggleBtnBase,
                   selectedWin === 'lose'
-                    ? 'bg-rose-500/10 text-rose-600 font-medium'
-                    : 'text-muted-foreground hover:text-rose-600'
-                "
+                    ? simpleMatchStyle.toggleBtnActiveLose
+                    : simpleMatchStyle.toggleBtnInactiveLose
+                ]"
+                @click="selectedWin = 'lose'"
               >
                 失败
               </button>
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-muted-foreground">共 {{ filteredList.length }} 场</span>
-            <select
-              v-model="itemsPerPage"
-              class="h-8 w-16 rounded-md border border-input bg-background px-2 py-1 text-xs"
-            >
+          <div :class="simpleMatchStyle.paginationGroup">
+            <span :class="simpleMatchStyle.totalCountText">共 {{ filteredList.length }} 场</span>
+            <select v-model="itemsPerPage" :class="simpleMatchStyle.pageSizeSelect">
               <option :value="10">10场</option>
               <option :value="20">20场</option>
               <option :value="50">50场</option>
             </select>
-            <div class="flex items-center gap-1">
+            <div :class="simpleMatchStyle.pageNavGroup">
               <button
-                @click="prevPage"
                 :disabled="currentPage === 1"
-                class="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent disabled:opacity-50"
+                :class="simpleMatchStyle.pageBtn"
+                @click="prevPage"
               >
                 &lt;
               </button>
-              <span class="text-xs min-w-[3rem] text-center"
+              <span :class="simpleMatchStyle.pageIndicator"
                 >{{ currentPage }} / {{ totalPages || 1 }}</span
               >
               <button
-                @click="nextPage"
                 :disabled="currentPage === totalPages"
-                class="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent disabled:opacity-50"
+                :class="simpleMatchStyle.pageBtn"
+                @click="nextPage"
               >
                 &gt;
               </button>
@@ -293,18 +274,18 @@ const prevPage = () => {
                           <div v-else :class="simpleMatchStyle.placeHolder"></div>
                         </TooltipTrigger>
                         <TooltipContent v-if="lcuState.spellsDictionary[spellId]">
-                          <div class="flex flex-col gap-1 max-w-[260px]">
-                            <span class="font-semibold">{{
+                          <div :class="simpleMatchStyle.tooltipSpellContainer">
+                            <span :class="simpleMatchStyle.tooltipTitle">{{
                               lcuState.spellsDictionary[spellId].name
                             }}</span>
-                            <span class="text-xs">
+                            <span :class="simpleMatchStyle.tooltipText">
                               冷却时间：{{ lcuState.spellsDictionary[spellId].cooldown }}
                             </span>
-                            <span class="text-xs">
+                            <span :class="simpleMatchStyle.tooltipText">
                               解锁等级：{{ lcuState.spellsDictionary[spellId].summonerLevel }}
                             </span>
                             <span
-                              class="text-xs matched-rich-html"
+                              :class="'text-xs matched-rich-html'"
                               v-html="lcuState.spellsDictionary[spellId].description"
                             ></span>
                           </div>
@@ -333,13 +314,13 @@ const prevPage = () => {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent v-if="lcuState.arenaAugments[kiwiId]">
-                          <div class="flex flex-col gap-2 max-w-[280px]">
-                            <div class="flex items-center gap-2">
+                          <div :class="simpleMatchStyle.tooltipRuneContainer">
+                            <div :class="simpleMatchStyle.tooltipRuneHeader">
                               <img
                                 :src="getIconUrl(lcuState.arenaAugments[kiwiId].iconPath)"
-                                class="w-7 h-7 rounded"
+                                :class="simpleMatchStyle.tooltipRuneIcon"
                               />
-                              <span class="font-semibold">{{
+                              <span :class="simpleMatchStyle.tooltipTitle">{{
                                 lcuState.arenaAugments[kiwiId].name
                               }}</span>
                             </div>
@@ -352,7 +333,9 @@ const prevPage = () => {
                               ></span>
                               {{ getRarityText(lcuState.arenaAugments[kiwiId].rarity) }}
                             </span>
-                            <span class="text-xs">{{ lcuState.arenaAugments[kiwiId].desc }}</span>
+                            <span :class="simpleMatchStyle.tooltipText">{{
+                              lcuState.arenaAugments[kiwiId].desc
+                            }}</span>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -372,22 +355,22 @@ const prevPage = () => {
                         <div v-else :class="simpleMatchStyle.placeHolder"></div>
                       </TooltipTrigger>
                       <TooltipContent v-if="lcuState.perksDictionary[getPrimaryRuneId(item)]">
-                        <div class="flex flex-col gap-2 max-w-[280px]">
-                          <div class="flex items-center gap-2">
+                        <div :class="simpleMatchStyle.tooltipRuneContainer">
+                          <div :class="simpleMatchStyle.tooltipRuneHeader">
                             <img
                               :src="
                                 getIconUrl(
                                   lcuState.perksDictionary[getPrimaryRuneId(item)].iconPath
                                 )
                               "
-                              class="w-7 h-7 rounded"
+                              :class="simpleMatchStyle.tooltipRuneIcon"
                             />
-                            <span class="font-semibold">
+                            <span :class="simpleMatchStyle.tooltipTitle">
                               {{ lcuState.perksDictionary[getPrimaryRuneId(item)].name }}
                             </span>
                           </div>
                           <span
-                            class="text-xs matched-rich-html"
+                            :class="'text-xs matched-rich-html'"
                             v-html="lcuState.perksDictionary[getPrimaryRuneId(item)].longDesc"
                           ></span>
                         </div>
@@ -408,21 +391,21 @@ const prevPage = () => {
                         <div v-else :class="simpleMatchStyle.placeHolder"></div>
                       </TooltipTrigger>
                       <TooltipContent v-if="lcuState.perkStylesDictionary[getSubRuneStyleId(item)]">
-                        <div class="flex flex-col gap-2 max-w-[260px]">
-                          <div class="flex items-center gap-2">
+                        <div :class="simpleMatchStyle.tooltipSpellContainer">
+                          <div :class="simpleMatchStyle.tooltipRuneHeader">
                             <img
                               :src="
                                 getIconUrl(
                                   lcuState.perkStylesDictionary[getSubRuneStyleId(item)].iconPath
                                 )
                               "
-                              class="w-7 h-7 rounded"
+                              :class="simpleMatchStyle.tooltipRuneIcon"
                             />
-                            <span class="font-semibold">
+                            <span :class="simpleMatchStyle.tooltipTitle">
                               {{ lcuState.perkStylesDictionary[getSubRuneStyleId(item)].name }}
                             </span>
                           </div>
-                          <span class="text-xs">{{
+                          <span :class="simpleMatchStyle.tooltipText">{{
                             lcuState.perkStylesDictionary[getSubRuneStyleId(item)].tooltip
                           }}</span>
                         </div>
@@ -444,7 +427,7 @@ const prevPage = () => {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <span class="text-xs">击杀参与率</span>
+                      <span :class="simpleMatchStyle.tooltipText">击杀参与率</span>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -460,7 +443,7 @@ const prevPage = () => {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <span class="text-xs">对英雄造成的总伤害</span>
+                      <span :class="simpleMatchStyle.tooltipText">对英雄造成的总伤害</span>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -476,7 +459,7 @@ const prevPage = () => {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <span class="text-xs">总补刀数与分均补刀</span>
+                      <span :class="simpleMatchStyle.tooltipText">总补刀数与分均补刀</span>
                     </TooltipContent>
                   </Tooltip>
                 </div>
@@ -506,7 +489,7 @@ const prevPage = () => {
                             <div :class="simpleMatchStyle.epicHeadLeft">
                               <img
                                 :src="getIconUrl(lcuState.itemsDictionary[epicItem].iconPath)"
-                                class="w-full h-full object-cover"
+                                :class="simpleMatchStyle.epicImageInner"
                               />
                             </div>
                             <div :class="simpleMatchStyle.epicHeadRight">
@@ -532,7 +515,7 @@ const prevPage = () => {
                                   <img
                                     v-if="lcuState.itemsDictionary[fromItem]"
                                     :src="getIconUrl(lcuState.itemsDictionary[fromItem].iconPath)"
-                                    class="w-full h-full object-cover"
+                                    :class="simpleMatchStyle.epicImageInner"
                                   />
                                 </div>
                               </template>
@@ -547,7 +530,7 @@ const prevPage = () => {
                                   <img
                                     v-if="lcuState.itemsDictionary[toItem]"
                                     :src="getIconUrl(lcuState.itemsDictionary[toItem].iconPath)"
-                                    class="w-full h-full object-cover"
+                                    :class="simpleMatchStyle.epicImageInner"
                                   />
                                 </div>
                               </template>
@@ -555,7 +538,7 @@ const prevPage = () => {
                           </div>
                           <div :class="simpleMatchStyle.epicBottom">
                             <div
-                              class="matched-rich-html"
+                              :class="'matched-rich-html'"
                               v-html="lcuState.itemsDictionary[epicItem].description"
                             ></div>
                           </div>
@@ -615,7 +598,7 @@ const prevPage = () => {
           </div>
 
           <div :class="simpleMatchStyle.bottomText">
-            {{ item.gameMode }} | {{ item.gameDuration }} | {{ item.gameCreation }} | {{ item.map }}
+            {{ item.gameMode }} · {{ item.gameDuration }} · {{ item.gameCreation }} · {{ item.map }}
           </div>
         </div>
       </template>
