@@ -5,10 +5,11 @@ import { BaiYueKuiShard } from '@shared/yuekui-shard/interface'
 import { Shard } from '@shared/yuekui-shard/decorators'
 import { lcuState } from '../Lcu-state/state'
 import { autorun, toJS } from 'mobx'
+import { createHttp1Request } from 'league-connect'
 
 import type { LcuStateSnapshot, QueryMatchedIndex } from '../Lcu-state/type'
 
-// ⬇️ 定义 Action 的结构，避免在 ipcMain.on 里使用 implicit any
+// 鐚浄绗?鐎规矮绠?Action 閻ㄥ嫮绮ㄩ弸鍕剁礉闁灝鍘ら崷?ipcMain.on 闁插奔濞囬悽?implicit any
 interface LcuActionPayload {
   type: string
   payload: any
@@ -23,10 +24,10 @@ export class RendererSyncShard implements BaiYueKuiShard {
 
   private _disposeFn: (() => void) | null = null
 
-  // ⬇️ 显式声明返回类型 LcuStateSnapshot
+  // 鐚浄绗?閺勬儳绱℃竟鐗堟鏉╂柨娲栫猾璇茬€?LcuStateSnapshot
   private _getCleanState(): LcuStateSnapshot {
     const stateSnapShot = toJS(lcuState)
-    // ⬇️ 使用类型断言或依靠接口检查，确保 socket: null 生效
+    // 鐚浄绗?娴ｈ法鏁ょ猾璇茬€烽弬顓♀枅閹存牔绶烽棃鐘冲复閸欙絾顥呴弻銉礉绾喕绻?socket: null 閻㈢喐鏅?
     const cleanState: LcuStateSnapshot = {
       ...stateSnapShot,
       socket: null,
@@ -35,11 +36,11 @@ export class RendererSyncShard implements BaiYueKuiShard {
     return cleanState
   }
 
-  onInit(): void {
-    // ⬇️ 严格模式：事件对象类型化，数据标记为 unknown
+  async onInit(): Promise<void> {
+    // 鐚浄绗?娑撱儲鐗稿Ο鈥崇础閿涙矮绨ㄦ禒璺侯嚠鐠烇紕琚崹瀣閿涘本鏆熼幑顔界垼鐠侀璐?unknown
     // ipcRenderer.send() ---> ipcMain.on(): void
     ipcMain.on('lcu-action', (_event: IpcMainEvent, _action: unknown) => {
-      // 🛡️ 类型守卫：断言 _action 是我们预期的结构
+      // 棣冩礉閿?缁鐎风€瑰牆宕奸敍姘焽鐟封偓 _action 閺勵垱鍨滄禒顒勵暕閺堢喓娈戠紒鎾寸€?
       const action = _action as LcuActionPayload
 
       console.log('Main received action', action)
@@ -57,12 +58,34 @@ export class RendererSyncShard implements BaiYueKuiShard {
       }
     })
 
-    // ⬇️ 严格模式：显式返回 Promise<LcuStateSnapshot> 或 LcuStateSnapshot
+    // 鐚浄绗?娑撱儲鐗稿Ο鈥崇础閿涙碍妯夊蹇氱箲閸?Promise<LcuStateSnapshot> 閹?LcuStateSnapshot
     // ipcRenderer.invoke() --> ipcMain.handle(): void | Promise<void>
-    ipcMain.handle('lcu-get-state', (): LcuStateSnapshot => {
-      return this._getCleanState()
-    })
+    
+    // 🟢 新增：获取对局详情
+    ipcMain.handle('get-match-detail', async (_event, gameId: number) => {
+      const credential = lcuState.credential
+      if (!credential) return null
 
+      try {
+        const response = await createHttp1Request(
+          {
+            method: 'GET',
+            url: `/lol-match-history/v1/games/${gameId}`
+          },
+          credential
+        )
+
+        if (response.ok) {
+          // createHttp1Request 已封装 json()，无需额外 await
+          const data = response.json()
+          return data
+        }
+        return null
+      } catch (error) {
+        console.error(`[RendererSync] Failed to fetch match detail for ${gameId}:`, error)
+        return null
+      }
+    })
     this._disposeFn = autorun(() => {
       const cleanState = this._getCleanState()
       // ipcRenderer.on() ---> win.webContents.send
@@ -78,5 +101,6 @@ export class RendererSyncShard implements BaiYueKuiShard {
     if (this._disposeFn) this._disposeFn()
     ipcMain.removeAllListeners('lcu-action')
     ipcMain.removeHandler('lcu-get-state')
+    ipcMain.removeHandler('get-match-detail')
   }
 }

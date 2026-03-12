@@ -142,7 +142,6 @@ const FlexLp = computed(() =>
             </div>
           </div>
         </div>
-
         <div v-else :class="cardStyles.loadingStateCard">等待召唤师信息…</div>
       </div>
     </div>

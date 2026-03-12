@@ -123,3 +123,13 @@ export interface PerkStyleItem {
 }
 
 export type PerkStylesDictionary = Record<number, PerkStyleItem>
+
+export type StaticCacheMap = {
+    championList: ChampionSimple[]
+    arenaAugments: Record<number, ArenaAugmentDictItem>
+    itemsDictionary: ItemsDictionary
+    spellsDictionary: SpellsDictionary
+    perksDictionary: PerksDictionary
+    perkStylesDictionary: PerkStylesDictionary
+  }
+ export type StaticCacheKey = keyof StaticCacheMap

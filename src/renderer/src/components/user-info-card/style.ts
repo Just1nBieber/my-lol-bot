@@ -1,7 +1,7 @@
 export const cardStyles = {
   // 1. 整体布局外框 (原 Container 到 TrdContainer)
   panelWrapper:
-    'flex-1 min-w-210 min-h-155 relative bg-linear-to-br from-white via-zinc-100 to-white dark:from-slate-900 dark:via-slate-950 dark:to-slate-900',
+    'flex-1 min-w-210 min-h-50 relative bg-linear-to-br from-white via-zinc-100 to-white dark:from-slate-900 dark:via-slate-950 dark:to-slate-900',
   mainLayout: 'relative z-10 min-w-210 max-w-full mx-auto flex flex-col gap-6',
   infoSectionWrapper: 'w-full grid gap-4',
 
